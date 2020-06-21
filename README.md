@@ -37,44 +37,7 @@ For more information, see [official Hugo documentation](https://gohugo.io/gettin
 
 ### Socials
 
-In order for the Socials to be surfaced in Forestry, you should copy the theme's `config/_default/social.yaml` to your project.
-
-### Authors
-
-You should register authors as a taxonomy in your project's `config.yaml``
-
-```yaml
-taxonomies:
-  author: authors
-```
-
-#### Creating authors
-
-Add a similar file to your content directory and Front Matter example.
-
-```yaml
-# /content/authors/firstname-lastname/_index.md
----
-title: Dennis Brotzky
-bio: |
-  Written by You. This is where your author bio lives. Share your work, your
-  joys and of course, your Twitter handle.
-avatar: /images/dennis-brotzky.jpg
-featured: true
-social:
-  - title: github
-    url: https://github.com
-  - title: twitter
-    url: https://twitter.com
-  - title: instagram
-    url: https://instagram.com
-  - title: dribbble
-    url: https://dribbble.com
-  - title: unsplash
-    url: https://unsplash.com
----
-
-```
+Defined in `config/_default/social.yaml`.
 
 #### Assigning authors to posts.
 
