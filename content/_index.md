@@ -1,7 +1,7 @@
 ---
 hero:
-  heading: Novela, the simplest way to start publishing with Hugo and Forestry.
+  heading: Making a better world for future generations.
   maxWidthPX: 652
 seo:
-  image: /images/hero-2.jpg
+  image: /images/hero-3.jpg
 ---
