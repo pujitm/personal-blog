@@ -1,15 +1,5 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/8fd7da5f-0c4d-4a43-9e23-2d1baf0d35cc/deploy-status)](https://app.netlify.com/sites/hugo-novela-forestry/deploys)
 
-# Hugo Novela Forestry Starter
-
-A port of [Narative](https://www.narative.co/)'s Gatsby theme [Novela](https://www.narative.co/labs/novela/)
-
-![](images/tn.png)
-
-<a href="https://app.forestry.io/quick-start?repo=forestryio/novela-hugo-starter&engine=hugo&version=0.62.2">
-    <img alt="Import this project into Forestry" src="https://assets.forestry.io/import-to-forestryK.svg" />
-</a>
-
 ## Prerequisites
 
 - Hugo > 0.55.0
@@ -18,8 +8,7 @@ A port of [Narative](https://www.narative.co/)'s Gatsby theme [Novela](https://w
 
 ![Forestry user interface](images/novela-forestry.png)
 
-This project has been pre-configured to work with [Forestry](https://forestry.io), just import your repository ✨. \
-Any changes you make will be commited back to the repo, and deployed if you're using Netlify.
+This project has been pre-configured to work with [Forestry](https://forestry.io) and [Netlify](https://netlify.com).
 
 ## Deployment and hosting with Netlify
 
@@ -30,29 +19,21 @@ Import your site in [Netlify](https://netlify.com)
 3. Set the publish directory to: `public`
 4. Make sure to set `HUGO_VERSION` to 0.55.0 or above (tested with 0.62.2)
 
-That's it, now your site gets deployed automatically on `git push` or when saving documents from Forestry.
-
 ## Development
 
 ```bash
-# clone the repository
-git clone git@github.com:forestryio/novela-hugo-starter.git
+# 1. clone the repository
 
-# cd in the project directory
-cd novela-hugo-starter
+# 2. Initialize theme submodule(s)
+git submodule update --init --recursive
 
-# Start local dev server
+# 3. Start local dev server
 hugo server
 ```
 
 For more information, see [official Hugo documentation](https://gohugo.io/getting-started/).
 
 ## Customization
-
-### Logo
-
-Add to your projects layout directory your logo's SVG:
-`/layouts/icons/ui/logo.html`
 
 ### Socials
 
@@ -92,9 +73,11 @@ social:
   - title: unsplash
     url: https://unsplash.com
 ---
+
 ```
 
 #### Assigning authors to posts.
+
 Add the name of the author to the "authors" field:
 
 ```yaml
@@ -102,6 +85,7 @@ authors:
   - Dennis Brotzky
   - Thiago Costa
 ```
+
 ### Newsletter call to action
 
 This theme includes a shortcode for a newsletter callout form that you can add to any page.
@@ -110,7 +94,6 @@ It uses [formspree.io](//formspree.io/) as proxy to send the actual email. Each 
 ```
 {{< subscribe email="your@email.com" >}}
 ```
-
 
 ## LICENSE
 

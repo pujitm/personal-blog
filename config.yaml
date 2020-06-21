@@ -1,7 +1,7 @@
-baseURL: "https://example.com"
+baseURL: "https://pujitm.com"
 languageCode: "en-us"
-title: "Hugo Novela"
-pygmentsstyle: 'monokai'
+title: "Pujit Mehrotra"
+pygmentsstyle: "monokai"
 
 # Theme settings
 theme: novela
@@ -11,7 +11,5 @@ social:
   github: "#"
   instagram: "#"
   linkedin: "#"
-  dribbble: "#"
-  youtube: "#"
 taxonomies:
   author: authors
