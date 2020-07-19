@@ -56,8 +56,10 @@ console.log('hi);
 
 \`\`\`
 
+The average amount of time taken to produce this was 30-60min.
+
 Honestly, I felt a bit dismayed when I first saw this. I felt like an ineffective mentor/teacher because I had tried to teach them to think and structure their code more readably and more configurably. 
 
-After reflection, I think I should have provided controlled exercises allowing them to use concepts practically.
+After reflection, I think I should have provided controlled exercises allowing them to use new concepts practically.
 
-Nonetheless,
+Nonetheless, I feel comfortable using this question as a litmus test to gauge a candidate's ability and experience.
