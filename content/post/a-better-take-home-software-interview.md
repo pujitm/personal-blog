@@ -34,7 +34,7 @@ console.log('hi')
 
 \`\`\`
 
-Then, as per the developers' wishes, I also wrote my submission (link to github).
+Then, as per the developers' wishes, I also wrote my submission (link to github, with commit sha).
 
 Side Note: I tried to use Github Classroom for the interview workflow. In hindsight, I should have made a separate organization specifically for these take-home questions. I think this flow has a lot of room for improvement.
 
@@ -62,4 +62,16 @@ Honestly, I felt a bit dismayed when I first saw this. I felt like an ineffectiv
 
 After reflection, I think I should have provided controlled exercises allowing them to use new concepts practically.
 
-Nonetheless, I feel comfortable using this question as a litmus test to gauge a candidate's ability and experience.
+***
+
+Nonetheless, this take-home is an acceptable litmus test to gauge a candidate's technical ability and experience.
+
+While writing this, I found myself looking for a clear, production-backed example to demonstrate the difference between entry-level and experienced candidates. 
+
+I found some [documentation for GloriaFood](https://www.gloriafood.com/restaurant-ideas/restaurant-promotion-ideas-to-try) (an online ordering platform) insightful for this purpose. Here are several promotion structures they support:
+
+| Header |
+
+| ------ |
+
+| Cell   |
