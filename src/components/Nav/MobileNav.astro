@@ -1,5 +1,6 @@
 ---
 import { Icon } from "astro-icon";
+import { SITE_TITLE } from "../../config";
 import { NavItem } from "./navItem";
 
 export interface Props {
@@ -7,7 +8,10 @@ export interface Props {
 }
 ---
 
-<div id="mobilenav" class="bg-stone-200 fixed inset-0 translate-x-full transition-transform">
+<div
+  id="mobilenav"
+  class="bg-stone-200 dark:bg-gray-700 fixed inset-0 translate-x-full transition-transform"
+>
   <div class="space-y-4" role="dialog" aria-modal="true">
     <header class="text-right">
       <button id="close-nav-button" type="button" class="btn" aria-label="Close navigation">
@@ -15,7 +19,9 @@ export interface Props {
       </button>
     </header>
     <div class="flex justify-center mt-8">
-      <a href="#" class="text-4xl font-bold underline decoration-sky-500 underline-offset-8">LU</a>
+      <a href="#" class="text-4xl font-bold underline decoration-sky-500 underline-offset-8"
+        >{SITE_TITLE}
+      </a>
     </div>
     <nav>
       <ul class="flex flex-col">
