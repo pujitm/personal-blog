@@ -1,0 +1,48 @@
+---
+import Icon from "astro-icon";
+import FullNav from "./FullNav.astro";
+import MobileNav from "./MobileNav.astro";
+import { NavItem } from "./navItem";
+
+const items: NavItem[] = [
+  { title: "RSS", url: "/rss.xml" },
+  { title: "Github", url: "https://github.com/pujitm", target: "_blank" },
+];
+---
+
+<!-- Contains Both Desktop and Mobile Navs -->
+<div>
+  <FullNav items={items}>
+    <button id="open-nav-button" type="button" class="btn sm:hidden" aria-label="Navigation">
+      <Icon pack="mdi" name="menu" class="h-8" />
+    </button>
+    <!-- <ThemeSwitcher /> -->
+  </FullNav>
+  <MobileNav items={items} />
+</div>
+<script>
+  // Open/close mobile nav menu
+  const openNavButton = document.querySelector("#open-nav-button");
+  const closeNavButton = document.querySelector("#close-nav-button");
+  const mobileNav = document.querySelector("#mobilenav");
+
+  const toggle = () => mobileNav.classList.toggle("translate-x-full");
+  openNavButton.addEventListener("click", toggle);
+  closeNavButton.addEventListener("click", toggle);
+  /**
+   * Close nav while going to selected link (or section on page)
+   */
+  mobileNav.addEventListener("click", (event) => {
+    if ((event.target as HTMLElement).tagName === "A") {
+      toggle();
+    }
+  });
+
+  // Fix header to top of page once user scrolls past
+  // const header: HTMLElement = document.querySelector("#page-header");
+  // const page = document.documentElement;
+  // document.addEventListener("scroll", () => {
+  //   const d = page.clientHeight - page.scrollTop - header.offsetHeight;
+  //   header.classList.toggle("fixed-header", d < 0);
+  // });
+</script>

@@ -1,0 +1,34 @@
+---
+import { Icon } from "astro-icon";
+import { NavItem } from "./navItem";
+
+export interface Props {
+  items: NavItem[];
+}
+---
+
+<div id="mobilenav" class="bg-stone-200 fixed inset-0 translate-x-full transition-transform">
+  <div class="space-y-4" role="dialog" aria-modal="true">
+    <header class="text-right">
+      <button id="close-nav-button" type="button" class="btn" aria-label="Close navigation">
+        <Icon pack="mdi" name="close" class="h-8 mx-8 my-4" />
+      </button>
+    </header>
+    <div class="flex justify-center mt-8">
+      <a href="#" class="text-4xl font-bold underline decoration-sky-500 underline-offset-8">LU</a>
+    </div>
+    <nav>
+      <ul class="flex flex-col">
+        {
+          Astro.props.items.map(({ title, url, target = "_self" }) => (
+            <li>
+              <a class="block py-4 text-xl text-center" target={target} href={url}>
+                {title}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</div>
