@@ -509,10 +509,7 @@ which would require more changes that would perpetuate the cycle.
 Not to mention, merges and integration would be very _exciting_ times for the team.
 
 Take all of this, increase the logical/rule complexity and feature requirements by a few orders of magnitude,
-and we're left with (what I imagine is) the reason why COBOL-based infrastructure code is a nightmare.
-
-https://softwareengineering.stackexchange.com/a/334678
-https://en.wikipedia.org/wiki/Coupling_(computer_programming)
+and we're left with (what I imagine is) the reason why COBOL-based infrastructure code is a nightmare \[4\].
 
 > Tightly coupled systems tend to exhibit the following developmental characteristics, which are often seen as disadvantages:
 >
@@ -695,8 +692,13 @@ I'll probably revise this article later.
 [2]: In Javascript, a "module" is usually a file with exported code. A folder with an `index` module is also a module.
 e.g. `checkout.ts` and `checkout/index.ts` would both yield the module `checkout`.
 
-https://www.digitalocean.com/community/tutorials/react-index-js-public-interfaces
+[Digital Ocean, Public Interfaces to JS Modules](https://www.digitalocean.com/community/tutorials/react-index-js-public-interfaces)
 
-https://www.freecodecamp.org/news/how-to-use-es6-modules-and-why-theyre-important-a9b20b480773/
+[Freecodecamp, Es6 Modules](https://www.freecodecamp.org/news/how-to-use-es6-modules-and-why-theyre-important-a9b20b480773/)
 
 \[3\]: [instagram's id sharding](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c)
+
+[4]:
+
+- [Stack Overflow, Coupling](https://softwareengineering.stackexchange.com/a/334678)
+- [Wikipedia, Coupling](<https://en.wikipedia.org/wiki/Coupling_(computer_programming)>)
