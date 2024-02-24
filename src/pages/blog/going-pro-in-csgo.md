@@ -1,5 +1,5 @@
 ---
-layout: "../../layouts/BlogPost.astro"
+layout: "../../layouts/SimpleBlogPost.astro"
 title: "How to go pro in CS:GO"
 description: "A noob's perspective."
 pubDate: "Sep 17 2022"
@@ -8,13 +8,13 @@ pubDate: "Sep 17 2022"
 
 # How to Go Pro in Counter Strike: Global Offensive
 
-__A Noob's Perspective__
+**A Noob's Perspective**
 
 So you've spent dozens, maybe hundreds, maybe thousands, of hours playing deathmatch and watching demos from pros and yourself, but you're still no closer to being a pro than you were a couple months ago.
 
 What gives?
 
-If this sounds like you, I hope this guide will be helpful[^6]--more helpful than videos [like this](https://youtu.be/KcSAlo5g3b8). 
+If this sounds like you, I hope these musings will be helpful[^6]--more helpful than videos [like this](https://youtu.be/KcSAlo5g3b8).
 
 Advice online tells you what to do and to work hard at it, but not how to do it or what working hard looks like. That's what I'm going to try to do here.
 
@@ -30,13 +30,13 @@ The same goes for dedicated aim, spray, and retake training. Keep those short.
 
 Demos are problematic because they contain an overwhelming amount of information. How you use them will make or break your career.
 
-To go pro, you have to understand the game's history: the progression of the meta and why those changes happened. 
+Demos are all about decision making. Ideally, you'll be able to trace the progression of how decision-making has changed through the game's history.
 
 Fortunately, you can find pro demos as old as 2012 on HLTV. Go to Stats > Top Events > Time Filter [2012] > Ranking Filter [All]. Then choose an event like the AMD Sapphire CS:GO Invitational, click on an interesting match, and download the GOTV demo.
 
-Demos are notoriously buggy, and some might not work anymore. Just find the earliest interesting ones that do. Try toggling demo settings in the console. 
+Demos are notoriously buggy, and some might not work anymore. Just find the earliest interesting ones that do. Try toggling demo settings in the console.
 
->If you set `demo_index 1` and skip to the end before replaying the demo, navigating through the match will be smoother and less frustrating.
+> If you set `demo_index 1` and skip to the end before replaying the demo, navigating through the match will be smoother and less frustrating.
 
 Tools like the CS:GO Demo Manager can be overwhelming at first, but they're dead useful. Start using them ASAP, and if you find the in-game demo controls absolutely unpalatable, try using something like [Skybox](https://skybox.gg/).
 
@@ -51,9 +51,11 @@ You can find better resources to learn those.
 
 Ideally, you can watch each game 3 times: twice in-demo and once on Youtube to put it all together (if there's a vod or casted game).
 
-On the first watch-through of the demo, note what utility is thrown, where it lands, the role it serves, and how the opposing team reacts to it. Use Skybox or the Demo Manager to avoid having to hunt these moments down.
+On the first watch-through of the demo, shadow a player you find interesting, and make sure to turn off x-ray and anything else that gives you more information that a player would have during the match. Compare their decisions and actions to the ones you would make.
 
-On the second watch-through, note player positioning, crosshair placement, and peeking, especially during key moments. Where are they looking and why? Was it effective or not, and why? Do they (un)crouch? This should be done via the in-game demo watcher, in POV view.
+On the second watch-through, note what utility is thrown, where it lands, the role it serves, and how the opposing team reacts to it. Use Skybox or the Demo Manager to avoid having to hunt these moments down.
+
+On the third watch-through, note player positioning, crosshair placement, and peeking, especially during key moments. Where are they looking and why? Was it effective or not, and why? Do they (un)crouch? This should be done via the in-game demo watcher, in POV view.
 
 Scrub back and forth in time within rounds to look at all players. See if you can rank their relative strengths and weaknesses (this is more for fun). Do some do better in clutches? What do they do different? Oh, and make sure to keep sound on.
 
@@ -69,13 +71,13 @@ Watch as many demos from each year as you can. Try to develop meta storylines an
 
 While you're doing this, you can still be watching pro games and your own demos.
 
-I would stick to live streams and youtube vods/ highlights. There's no need to watch modern pro demos unless 1) you've worked up to it or 2) you're bored, and you want to. You simply won't get the most out of your time this way.
+I would stick to live streams and youtube vods/ highlights. There's no need to watch modern pro demos unless 1) you've worked up to it or 2) you're bored, and you want to. You simply won't get the most out of your time this way because you'll be missing context and you might not understand the game well enough to accurately decipher it.
 
 As for your own demos, you're only looking for your mistakes. This should be pretty quick, 20 minutes per session at most.
 
 ## Schedule
 
-Phew. That was a lot to take in. So what does a regular day look like? 
+Phew. That was a lot to take in. So what does a regular day look like?
 
 Assuming you're in school, watch a (modern) pro game (or a nade/game tutorial) on youtube for 10-15 minutes before hopping in-game. Don't forget to eat and stay hydrated. Don't shoot yourself in the foot.
 
@@ -117,7 +119,7 @@ Over the course of a year, you're going to be unrecognizable compared to when yo
 
 When you feel your understanding of the game stagnate for weeks (while continuing your routine), maybe for about a month, it's time to look for a serious team or put one together yourself. They should be playing in online leagues with direct paths to pro play and LANs.
 
-Remember, you have standards. Push people to meet them (ideally without being abusive). If they don't, start looking for a new teammate, or a new team altogether. Take initiative because no one else will. 
+Remember, you have standards. Push people to meet them (ideally without being abusive). If they don't, start looking for a new teammate, or a new team altogether. Take initiative because no one else will.
 
 For team conflict and criticism, which are healthy parts of the larger game, look for videos [like this](https://youtu.be/30a5yFBd7Fo). It may be time to look at different kinds of tutorials.
 
@@ -168,13 +170,8 @@ Can't wait to see y'all at LANs at the retirement home. I'm AWPing. Peace.
 ---
 
 [^1]: Unless you want to become an IGL, in which case, you should add a third demo-viewing.
-
 [^2]: I'm not talking about random PUG/game streams that they do on a whim. I'm talking about intentional, strategic content production. If they do (make content), their career's likely dying or dead.
-
 [^3]: You don't have to convince anyone that you're 100% awesome or helpful, just that there's a legitimate chance you could (grow to) be.
-
 [^4]: Ironically, this advice is vague.
-
 [^5]: The most important thing is practicing consistently every day (both play and study). If something I say interferes with that, ignore me.
-
 [^6]: Not trying to throw shade. I actually enjoyed the video :)

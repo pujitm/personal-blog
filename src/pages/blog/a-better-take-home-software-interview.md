@@ -1,7 +1,7 @@
 ---
-layout: "../../layouts/BlogPost.astro"
+layout: "../../layouts/SimpleBlogPost.astro"
 title: "A better take-home interview"
-description: "Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro."
+description: "A reflection on a take-home interview exercise at Be Next Tech/Kachow."
 pubDate: "Jul 20 2020"
 # heroImage: "/placeholder-hero.jpg"
 ---
@@ -21,7 +21,7 @@ They allow me to evaluate candidates in an environment similar to their would-be
 (especially for remote positions).
 
 Oh, and they would also grant me, personally,
-a massive unfair advantage over fellow interview candidates--time.
+a massive unfair advantage over fellow interview candidates: time.
 
 ---
 
@@ -30,7 +30,7 @@ a massive unfair advantage over fellow interview candidates--time.
 About 2 weeks ago, I asked the 6 junior developers working under me to participate in a little experiment.
 I gave them a vague prompt, some starter code, and asked them to make a program conforming to it.
 
-You can find everything I gave to them on my blah-blah-blah repo (link).
+You can find what I gave them in [this github repo](https://github.com/Be-Next-Tech/checkout-system-pricing-template).
 
 In the meantime, I drafted a document to help me evaluate responses.
 I wrote this before receiving or writing any code to reduce bias. Here's what I came up with:
@@ -78,7 +78,7 @@ I wrote this before receiving or writing any code to reduce bias. Here's what I 
 | Integrates linter in development process (either via CI or git hooks)           |     1     |
 | Bonus for pointing out mistakes in specs or provided code/tests                 |     1     |
 
-Then, as per the developers' wishes, I also wrote my submission (link to github, with commit sha).
+Then, my team asked me to write a submission as well [(link to repo)](https://github.com/Be-Next-Tech/checkout-system-pricing-pujitm/tree/a75ff38412d255d6aeee4d2a2dee424da4ec9ba5)\[1\].
 
 > Side Note: I tried to use Github Classroom for the interview workflow.
 > In hindsight, I should have made a separate organization specifically for these take-home questions.
@@ -89,7 +89,7 @@ Then, as per the developers' wishes, I also wrote my submission (link to github,
 That weekend, we convened to discuss and critique each other's code together.
 This was brave of them, and I'm proud that they were willing to be so vulnerable to each other!
 
-## I was a bit shocked by what I found.
+## I was surprised by the result.
 
 For context, these developers were third-year undergraduate computer science students,
 and 3 of the 6 attended top 15 computer science programs.
@@ -97,10 +97,10 @@ I expected the students from higher ranking programs to produce better programs.
 
 This was not the case.
 
-To my surprise, the submissions were by and large the same.
-Of course, each of them had different strengths and weaknesses that shone through.
+To my surprise, the submissions were mostly the same.
+Of course, each of them had different strengths and weaknesses too.
 Some organized and placed/scoped their logic more appropriately while others used better variable names and typings
-(all of them chose to use Typescript). The average submission looked like:
+(all of them chose to use Typescript). They spent between 30-60min on their code, and the average submission looked like:
 
 ```ts | checkout.ts
 // checkout.ts
@@ -165,8 +165,7 @@ export class Checkout implements CheckoutInterface {
           itemsToPrice[item].specialPrice *
           Math.floor(quantity / itemsToPrice[item].specialQuantity);
         this.totalPrice +=
-          itemsToPrice[item].unitPrice *
-          (quantity % itemsToPrice[item].specialQuantity);
+          itemsToPrice[item].unitPrice * (quantity % itemsToPrice[item].specialQuantity);
       } else {
         // item is at unit price
         this.totalPrice += itemsToPrice[item].unitPrice * quantity;
@@ -251,32 +250,196 @@ describe("Checkout Pricing", () => {
 });
 ```
 
-The developers' spent an average of 30-60min to produce this.
-
-> Honestly, I felt a bit disheartened when I first saw this.
-> I felt like an ineffective mentor/teacher because I failed
-> to teach them to think and structure their code more readably and "configurably".
->
+> This exercise helped me recalibrate our one-on-ones. I realized I was being too abstract and open-ended when coaching them.
 > Going forward, I plan to provide controlled exercises (instead of unstructured, open-ended ones) to help them to use new concepts practically.
 
 ---
 
-## Nonetheless, this take-home is an acceptable litmus test to gauge a candidate's technical ability and experience.
+## My submission was (very) different.
 
-Please note that I don't intend this as a put-down for my team or an ego-booster for myself.
-I hope to use the differences in our submissions to illustrate
+[My implementation](https://github.com/Be-Next-Tech/checkout-system-pricing-pujitm/tree/a75ff38412d255d6aeee4d2a2dee424da4ec9ba5) didn't look similar to the rest of my team's, and I also took more time than them: the code + tests took about 2.5 hours to write. I thought it might be insightful to explore the differences, but first, here are some excerpts from the code.
 
-1. Why the junior developers' code will likely be detrimental to a project in the long-term
-2. How most of those issues are addressed in the senior developer's code (my code)
+Product & Cart representation:
+
+```ts
+// src/product.ts
+/** Stock keeping unit. Type alias for string. Intended to clarify what the string should reference when composing other types */
+export type SKU = string;
+
+export interface HasSku {
+  sku: SKU;
+}
+
+export interface Product extends HasSku {
+  price: number;
+}
+
+// src/cart.ts
+export interface ItemInCart {
+  product: Product;
+  quantity: number;
+  /**
+   * Amount to charge for this item
+   *
+   * Intended to support charge for an amount differing from the normal subtotal
+   */
+  amountToCharge: number;
+}
+
+export type Cart = Map<SKU, ItemInCart>;
+```
+
+How pricing is handled:
+
+```ts
+// src/pricing.ts
+import { ItemInCart, Cart } from "./cart";
+import { SKU } from "./product";
+
+export interface PricingDependencies {
+  item: ItemInCart;
+  sku: SKU;
+  cart: Cart;
+}
+
+/** May return a subtotal price to charge a customer */
+export type PriceOption = (dependencies: PricingDependencies) => number | void;
+
+/** Returns a `PriceChooser` that can select from the given `PriceOption`s  */
+export type PricingStrategyFactory = (options: PriceOption[]) => PriceChooser;
+
+/** Returns the subtotal price to charge a customer */
+export type PriceChooser = (dependencies: PricingDependencies) => number;
+
+// Strategy Factories
+
+/**
+ * Choose the lowest possible price
+ * @param possiblePrices
+ */
+const Minima: PricingStrategyFactory = (possiblePrices) => (props) => {
+  const defaultPrice = props.item.product.price * props.item.quantity;
+  const prices = [defaultPrice, ...possiblePrices.map((strategy) => strategy(props))];
+  return Math.min(...removeInvalidPrices(prices));
+};
+
+// Helpers
+
+function removeInvalidPrices(prices: (number | void)[]): number[] {
+  function isNumber(val): val is number {
+    return val !== undefined && val !== null && Number(val) !== NaN;
+  }
+  return prices.filter(isNumber);
+}
+```
+
+Examples of how discounts are handled:
+
+```ts
+// src/promotions/templates/sku.ts
+import { PriceOption } from "pricing";
+
+interface PromotionParams {
+  /** SKUs the `discount` will apply to */
+  skus: string[];
+  /** A discounting strategy */
+  discount: PriceOption;
+}
+
+/**
+ * An Sku Promotion solely relies on (one or more) SKUs to apply a discount
+ */
+export function MakeSkuPromotion({ skus, discount }: PromotionParams): PriceOption {
+  return (params) => {
+    if (skus.includes(params.item.product.sku)) return discount(params);
+  };
+}
+
+// ------ src/promotions/templates/discounts/bulk.ts ------
+interface DiscountParams {
+  triggerQuantity: number;
+  newUnitPrice: number;
+}
+
+/**
+ * A bulk discount is a unit-level discount that is triggered when a minimum quantity
+ * `triggerQuantity` (inclusive) is purchased. The item's unit price is then discounted to the `newUnitPrice`
+ */
+export function MakeBulkDiscount(params: DiscountParams): PriceOption {
+  return ({ item }) => {
+    if (item.quantity >= params.triggerQuantity) return item.quantity * params.newUnitPrice;
+  };
+}
+```
+
+Checkout Implementation:
+
+```ts
+// src/checkout.ts
+class CheckoutItem implements ItemInCart {
+  amountToCharge: number;
+  constructor(readonly product: Product, public quantity = 1) {
+    this.amountToCharge = this.subtotal();
+  }
+
+  /** Shortcut to multiply product's regular unit price by the quantity */
+  private subtotal(): number {
+    return this.quantity * this.product.price;
+  }
+}
+
+export class Checkout implements CheckoutInterface {
+  private cart: Cart = new Map<SKU, ItemInCart>();
+  constructor(private runPricingStrategy: PriceChooser) {}
+
+  add(...items: Product[]): void {
+    items.forEach((item) => this.addItem(item));
+  }
+
+  total(): number {
+    let subtotal = 0;
+    this.cart.forEach((item) => (subtotal += item.amountToCharge));
+    return subtotal;
+  }
+
+  private addItem(item: Product) {
+    const cart = this.cart;
+
+    if (cart.has(item.sku)) {
+      cart.get(item.sku).quantity++;
+    } else {
+      cart.set(item.sku, new CheckoutItem(item));
+    }
+
+    this.onItemAdded();
+  }
+
+  private onItemAdded() {
+    this.refreshAllItemPrices();
+  }
+
+  private refreshAllItemPrices() {
+    return this.cart.forEach((item, sku, cart) => {
+      item.amountToCharge = this.runPricingStrategy({ item, sku, cart });
+    });
+  }
+}
+```
+
+This isn't supposed to be a put-down for my team or an ego-booster for myself (this was obviously written with their permission).
+The point is to use the differences in our submissions to illustrate:
+
+1. Why the "junior" code might be detrimental to a project in the long-term
+2. How most of those issues are addressed in the "senior" code (i.e. my code)
 3. The usefulness and validity of this litmus test
 
 ### Context: A Production Checkout System
 
-While writing this, I found myself looking for a clear, production-backed example to demonstrate the difference between entry-level and experienced candidates.
+While writing this reflection, I looked for a clear, production-backed example in this domain to demonstrate the difference between entry-level and experienced candidates.
 
 I found some [documentation for GloriaFood](https://www.gloriafood.com/restaurant-ideas/restaurant-promotion-ideas-to-try) (an online ordering platform) insightful for this purpose. Here are several promotion structures they support:
 
-> punctuation, capitalization, grammar plz
+> Note: this is verbatim.
 
 | <div style="text-align:center">**Promotions**</div>                                                                                                         |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -306,13 +469,13 @@ unless they've already made something extremely similar.
 If a candidate had no prior experience making such a system, yet was still able to identify all of these possibilities (before I publicized them),
 I would be quite impressed!
 
-### Production vs. Junior Developer's Code
+### Production vs. "Junior" Code
 
 Putting the buggy code aside, implementing these promotions using the junior developer's program and structure would get messy quickly.
 Especially if those settings could be user-configurable.
 
 Here, the checkout system and the pricing rules are tightly coupled.
-This means that each change to a pricing rule necessitates a change to the checkout module.
+This means that each change to a pricing rule requires a change to the checkout module.
 
 ```ts
 // at some point in the checkout module
@@ -327,7 +490,7 @@ if (itemsToPrice[item].specialPrice !== undefined) {
 }
 ```
 
-Most likely, this structure would generate a lot of duplicate code as well.
+This structure would likely generate a lot of duplicate code as well.
 
 Imagine a scenario where multiple changes related to the checkout system must be made simultaneously--say some analytics, tax calculations, and inventory integrations.
 
@@ -346,10 +509,7 @@ which would require more changes that would perpetuate the cycle.
 Not to mention, merges and integration would be very _exciting_ times for the team.
 
 Take all of this, increase the logical/rule complexity and feature requirements by a few orders of magnitude,
-and we're left with (what I imagine is) the reason why COBOL-based infrastructure code is a nightmare.
-
-https://softwareengineering.stackexchange.com/a/334678
-https://en.wikipedia.org/wiki/Coupling_(computer_programming)
+and we're left with (what I imagine is) the reason why COBOL-based infrastructure code is a nightmare \[4\].
 
 > Tightly coupled systems tend to exhibit the following developmental characteristics, which are often seen as disadvantages:
 >
@@ -363,15 +523,15 @@ This more "literal" structure yields software that is:
 2. Difficult to change (without breaking existing functionality)
 3. Highly "resistant" to evolving business needs
 
-### Production vs. Experienced Developer's code
+### Production vs. "Senior" code
 
-On the other hand, each of these promotions could be implemented in the experienced developer's code by
+On the other hand, each of these promotions could be implemented in the "senior" code by
 
 1. Composing the existing pricing format (`PriceOption` and `PriceChooser`) in a module under `promotions/templates` [2].
-2. (Optionally) Implementing each promotion in a module under `promotions`
+2. (Optionally) Implementing each promotion in a module under `promotions`, or within a database record.
 3. Adding data (customer info, location) that is exposed to the pricing options via `runPricingStrategy` in the checkout module.
 
-This isn't to say that the experienced developer's code is perfect.
+This isn't to say that the senior code is perfect.
 For starters, this approach results in (a lot) more code, which can make it difficult for project newcomers to onboard and
 use the composition structure quickly.
 
@@ -395,6 +555,11 @@ export default MakeSkuPromotion({
   skus: APPLICABLE_SKUS,
   discount: MakeGroupDiscount({ quantity: UNITS_IN_GROUP, price: GROUP_PRICE }),
 });
+
+// hypothetical use - just add the new promotion to a list
+import TwoBsFor45 from "promotions/2for45";
+const priceChooser = MakePricingStrategy.Minima([...discountsAndFees, TwoBsFor45]);
+new Checkout(priceChooser);
 ```
 
 In retrospect the variable naming could be better.
@@ -412,7 +577,7 @@ For instance, to add analytics, simply add an analytics plugin to a hook:
 
 private onItemAdded() {
     this.refreshAllItemPrices();
-    // Analytics, etc.
+    // Analytics, callback, etc.
 }
 ```
 
@@ -429,10 +594,13 @@ import { MakePricingStrategy: PricingStrategies } from './pricing';
 ...
 
 constructor(config: CheckoutConfig) {
-  // Usually, I wouldn't assign a default value to `strategy` because it increases coupling for little benefit (in this context), not to mention that it hides behavior that should be explicit (imo)
-  // So, this is for demonstration purposes, please don't crucify me uwu (A Minima strategy selects the lowest possible price)
-  const { calculate, strategy = PricingStrategies.Minima } = config;
-  this.runPricingStrategy = config.strategy([calculate.delivery, calculate.tax, calculate.productPrice]);
+  // for demonstration purposes. PricingStrategies.Minima chooses the lowest possible price for an item.
+  // calculate.delivery and calculate.tax would be PriceOption's, the same as any discount or pricing calculation.
+  // They would only apply to their respective items/"sku" identifiers.
+  // > type PriceOption = (dependencies: PricingDependencies) => number | void;
+
+  const { calculate } = config;
+  this.runPricingStrategy = PricingStrategies.Minima([calculate.delivery, calculate.tax, ...calculate.productDiscounts]);
   this.add(config.delivery, config.tax);
 }
 ```
@@ -442,11 +610,11 @@ This system has its drawbacks. The list-based strategy doesn't scale very well i
 <!-- <iframe height="400px" width="100%" src="https://repl.it/@pujitm/BothCapitalProperty?lite=true" scrolling="no" frameborder="no" allowtransparency="true" allowfullscreen="true" sandbox="allow-forms allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-modals"></iframe> -->
 
 Actually, my first instinct was to use a Map-based structure (which would scale well),
-but my very next instinct told me that an item's sku or id couldn't be the only trigger for a price change.
+but my very next thought was that an item's sku or id couldn't be the only trigger for a price change.
 
 Triggers could include the number of items in-cart, other items in-cart, date, location, customer info, inventory levels, output from another program, and so on.
 
-We could hash all of this information into a key, and then parse that (kind of like an extension of [Instagram's id sharding]),
+We could hash all of this information into a key, and then parse that (kind of like an extension of Instagram's ID sharding) \[3\],
 but:
 
 1. This introduces quite a complex layer to the application
@@ -468,7 +636,7 @@ This is highly desirable because it will decrease costs, increase momentum and m
 I introduced 3 different magnitudes of scale--single store, multi-store, and e-commerce--that this same program can handle without many changes to the checkout or pricing modules.
 This would be nigh impossible with the junior's code.
 
-Now, did I forsee
+Now, was I thinking about all of this when I wrote the code?
 
 No. I just saw the "shape" of the problem:
 
@@ -478,19 +646,12 @@ No. I just saw the "shape" of the problem:
 - There are different ways to choose which of the possible prices to charge (e.g. Max profit, lowest price, curved for sales/inventory quota/ratios)
 
 Based on the number of uncertainties and variable factors, as well as the limited time I had to deliver the program,
-I deemed this program structure to be appropriate.
+this program structure seemed appropriate, but in retrospect, there's a lot of room to improve. The code and state handling seems bug-prone, for instance.
+
+> If you're _relatively_ new to software development, don't just copy architectures, patterns, and development techniques you read about.
+> Understand what they are trying to solve, discover their drawbacks, and reflect on whether (and when) the tradeoffs are worth it.
 
 ---
-
-## How did I come up with this program structure?
-
-It's a long story.
-
-It may seem like it took me a mere 2.5-ish hours, but it took years of research, reflection, trying new strategies, struggling with them, and getting burned to
-make a repertoire for dealing with different kinds of problems. So I want to save that story for another time.
-
-If you're _relatively_ new to software development, don't just copy architectures, patterns, and development techniques you read about.
-Understand what they are trying to solve, discover their drawbacks, and reflect on whether (and when) the tradeoffs are worth it.
 
 ## So, does this take-home solve biased selection concerns?
 
@@ -520,21 +681,24 @@ But the benefits outweigh the drawbacks (for me):
 - More flexible for candidates
 - More data points for evaluation
 
-So it is my new strategy.
+So it is my new strategy. For now.
 
 ## Footnotes and References
 
-If you found my writing or ideas unclear, unhelpful, or absurd (or if you want to carry me in Rocket League), hmu on Twitter.
+I'll probably revise this article later.
 
-[1]: Link to the repo at the time of evaluation.
-I occasionally update it with improvements because I want it to be a 'role model' program for future learners.
-The [current version]() will be a bit different.
+[1]: Link to the repo at the time of evaluation. There may be future changes.
 
 [2]: In Javascript, a "module" is usually a file with exported code. A folder with an `index` module is also a module.
 e.g. `checkout.ts` and `checkout/index.ts` would both yield the module `checkout`.
 
-https://www.digitalocean.com/community/tutorials/react-index-js-public-interfaces
+[Digital Ocean, Public Interfaces to JS Modules](https://www.digitalocean.com/community/tutorials/react-index-js-public-interfaces)
 
-https://www.freecodecamp.org/news/how-to-use-es6-modules-and-why-theyre-important-a9b20b480773/
+[Freecodecamp, Es6 Modules](https://www.freecodecamp.org/news/how-to-use-es6-modules-and-why-theyre-important-a9b20b480773/)
 
-[instagram's id sharding]: https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c
+\[3\]: [Instagram's id sharding](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c)
+
+[4]: Some extra reading about coupling:
+
+- [Stack Overflow, Coupling](https://softwareengineering.stackexchange.com/a/334678)
+- [Wikipedia, Coupling](<https://en.wikipedia.org/wiki/Coupling_(computer_programming)>)

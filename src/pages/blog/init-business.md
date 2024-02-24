@@ -4,6 +4,7 @@ title: "Init Business"
 description: "Here is a sample of some basic Markdown syntax that can be used when writing Markdown content in Astro."
 pubDate: "Jul 09 2020"
 # heroImage: "/placeholder-hero.jpg"
+draft: true
 ---
 
 # Starting a Business

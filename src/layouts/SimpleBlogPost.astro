@@ -1,0 +1,44 @@
+---
+// Based on betterfuckingwebsite
+import Base from "./BaseLayout.astro";
+
+export interface Props {
+  content: {
+    title: string;
+    description: string;
+    pubDate?: string;
+    updatedDate?: string;
+    heroImage?: string;
+  };
+}
+
+const {
+  content: { title, description, pubDate, updatedDate, heroImage },
+} = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <article
+    class="prose prose-stone md:prose-lg text-black dark:prose-invert dark:text-stone-100 max-w-[20rem] md:max-w-prose prose-blockquote:border-current prose-li:marker:text-current prose-thead:border-current prose-tr:border-white/30 prose-tr:border-opacity-50 lg:prose-pre:min-w-[80ch] prose-hr:border-current"
+  >
+    <slot />
+  </article>
+</Base>
+
+<style>
+  article {
+    font-family: "Times New Roman", Times, serif;
+    margin: 40px auto;
+    max-width: 650px;
+    line-height: 1.6;
+    font-size: 18px;
+    color: #444;
+    padding: 0 10px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: 1.2;
+  }
+</style>
