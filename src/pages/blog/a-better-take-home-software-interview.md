@@ -1,5 +1,5 @@
 ---
-layout: "../../layouts/BlogPost.astro"
+layout: "../../layouts/SimpleBlogPost.astro"
 title: "A better take-home interview"
 description: "A reflection on a take-home interview exercise at Be Next Tech/Kachow."
 pubDate: "Jul 20 2020"
