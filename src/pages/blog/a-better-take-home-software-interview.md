@@ -614,7 +614,7 @@ but my very next thought was that an item's sku or id couldn't be the only trigg
 
 Triggers could include the number of items in-cart, other items in-cart, date, location, customer info, inventory levels, output from another program, and so on.
 
-We could hash all of this information into a key, and then parse that (kind of like an extension of [Instagram's id sharding]),
+We could hash all of this information into a key, and then parse that (kind of like an extension of Instagram's ID sharding) \[3\],
 but:
 
 1. This introduces quite a complex layer to the application
@@ -696,9 +696,9 @@ e.g. `checkout.ts` and `checkout/index.ts` would both yield the module `checkout
 
 [Freecodecamp, Es6 Modules](https://www.freecodecamp.org/news/how-to-use-es6-modules-and-why-theyre-important-a9b20b480773/)
 
-\[3\]: [instagram's id sharding](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c)
+\[3\]: [Instagram's id sharding](https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c)
 
-[4]:
+[4]: Some extra reading about coupling:
 
 - [Stack Overflow, Coupling](https://softwareengineering.stackexchange.com/a/334678)
 - [Wikipedia, Coupling](<https://en.wikipedia.org/wiki/Coupling_(computer_programming)>)
