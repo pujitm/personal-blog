@@ -4,7 +4,6 @@ title: "What I learned from Jesiz"
 description: ""
 pubDate: "Mar 11 2024"
 # heroImage: "/placeholder-hero.jpg"
-draft: true
 ---
 
 I don't know Jesiz personally, but when I interacted with him last year, he seemed sharper than anyone I'd met. Surprisingly, lots of people were generally lax and dismissive about his ideas and knowledge.
