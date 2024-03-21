@@ -1,12 +1,16 @@
 ---
 import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
 import Base from "../layouts/BaseLayout.astro";
+import SimpleCardLink from "../components/SimpleCardLink.astro";
+import Time from "../components/Time.astro";
 
 // Use Astro.glob() to fetch all posts, and then sort them by date.
 const posts = (await Astro.glob("./blog/*.{md,mdx}"))
   .filter((post) => !post.frontmatter.draft)
   .sort(
-    (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
+    (a, b) =>
+      new Date(b.frontmatter.pubDate).valueOf() -
+      new Date(a.frontmatter.pubDate).valueOf()
   );
 ---
 
@@ -15,7 +19,9 @@ const posts = (await Astro.glob("./blog/*.{md,mdx}"))
     <h1 class="text-3xl text-center my-2 sm:my-3">pujit's blog</h1>
     <p class="text-center text-lg sm:pb-4 lg:pb-5">hopefully helpful writing</p>
     <div class="my-4 mx-auto">
-      <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto"
+      >
         {
           posts.map((post) => (
             <a
@@ -23,17 +29,95 @@ const posts = (await Astro.glob("./blog/*.{md,mdx}"))
               href={post.url}
             >
               <time datetime={post.frontmatter.pubDate} class="sm:mb-2">
-                {new Date(post.frontmatter.pubDate).toLocaleDateString("en-us", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
+                {new Date(post.frontmatter.pubDate).toLocaleDateString(
+                  "en-us",
+                  {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  }
+                )}
               </time>
               <p class="capitalize">{post.frontmatter.title}</p>
             </a>
           ))
         }
       </div>
+    </div>
+    <p class="text-center text-lg py-4 lg:py-8">
+      talks, publications, and previous work
+    </p>
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto"
+    >
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://mascotyou.com/"
+      >
+        <Time date="Mar 17 2024" />
+        Website for Mascot You
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://www.legislaide.com/"
+      >
+        <Time date="Jan 13 2024" />
+        Legislaide - AI for drafting local gov policy
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://youtu.be/D4lCzCLSO-s?si=bM8Pko8qKNUZuR5K"
+      >
+        <Time date="Jun 29 2023" />
+        <p>Applications of Language Generation</p>
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://github.com/pujitm/fun-ov"
+      >
+        <Time date="Sep 05 2022" />
+        Functional validation library for Typescript
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://github.com/pujitm/git-ice"
+      >
+        <Time date="Feb 12 2022" />
+        Git extension to standardize commit messages
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="/article/rrr"
+      >
+        <Time date="May 31 2017" />
+        Radically Revolutionary Robots
+      </SimpleCardLink>
+    </div>
+    <p class="text-center text-lg py-4 lg:py-8">side projects</p>
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto"
+    >
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://github.com/pujitm/bskins-bot"
+      >
+        <Time date="Jul 28 2019" />
+        Counter Strike skin trading program
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://github.com/pujitm/jTorChat-pre-alpha"
+      >
+        <Time date="May 22 2019" />
+        jTorChat - Chat protocol & client over Tor
+      </SimpleCardLink>
+      <SimpleCardLink
+        class="border-blue-600 dark:border-blue-300 shadow-none"
+        href="https://github.com/pujitm/TheMobileMeleeGuide?tab=readme-ov-file"
+      >
+        <Time date="Jul 17 2017" />
+        Super Smash Bros. Melee Android App
+      </SimpleCardLink>
     </div>
   </main>
 </Base>
