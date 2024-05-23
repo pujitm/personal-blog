@@ -1,7 +1,7 @@
 ---
 import { Icon } from "astro-icon";
 import { SITE_TITLE } from "../../config";
-import { NavItem } from "./navItem";
+import type { NavItem } from "./navItem";
 
 export interface Props {
   items: NavItem[];
@@ -26,10 +26,11 @@ export interface Props {
     <nav>
       <ul class="flex flex-col">
         {
-          Astro.props.items.map(({ title, url, target = "_self" }) => (
+          Astro.props.items.map(({ title, url, target = "_self", icon }) => (
             <li>
               <a class="block py-4 text-xl text-center" target={target} href={url}>
                 {title}
+                {icon && <Icon pack={icon.pack} name={icon.name} class="h-8 mx-auto" />}
               </a>
             </li>
           ))
