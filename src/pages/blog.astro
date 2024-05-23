@@ -34,9 +34,9 @@ const posts = (await Astro.glob('./blog/*.{md,mdx}')).sort(
 	</head>
 	<body>
 		<Header />
-		<main>
+		<main class="mx-auto prose dark:prose-invert">
 			<section>
-				<ul>
+				<ul class="w-fit mx-auto">
 					{posts.map((post) => (
 						<li>
 							<time datetime={post.frontmatter.pubDate}>
@@ -52,6 +52,6 @@ const posts = (await Astro.glob('./blog/*.{md,mdx}')).sort(
 				</ul>
 			</section>
 		</main>
-		<Footer />
+		<!-- <Footer /> -->
 	</body>
 </html>
