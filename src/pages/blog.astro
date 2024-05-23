@@ -1,21 +1,21 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../config';
-import {notDraft} from '../lib/blog';
+import BaseHead from "../components/BaseHead.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
+import { notDraft } from "../lib/blog";
 
 // Use Astro.glob() to fetch all posts, and then sort them by date.
-const posts = (await Astro.glob('./blog/*.{md,mdx}')).sort(
-	(a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
+const posts = (await Astro.glob("./blog/*.{md,mdx}")).sort(
+  (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
 );
 ---
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+    <!-- <style>
 			ul {
 				list-style-type: none;
 				padding: unset;
@@ -31,28 +31,35 @@ const posts = (await Astro.glob('./blog/*.{md,mdx}')).sort(
 			ul li a:visited {
 				color: #8e32dc;
 			}
-		</style>
-	</head>
-	<body>
-		<Header />
-		<main class="mx-auto prose dark:prose-invert">
-			<section>
-				<ul class="w-fit mx-auto">
-					{posts.filter(notDraft).map((post) => (
-						<li>
-							<time datetime={post.frontmatter.pubDate}>
-								{new Date(post.frontmatter.pubDate).toLocaleDateString('en-us', {
-									year: 'numeric',
-									month: 'short',
-									day: 'numeric',
-								})}
-							</time>
-							<a href={post.url}>{post.frontmatter.title}</a>
-						</li>
-					))}
-				</ul>
-			</section>
-		</main>
-		<!-- <Footer /> -->
-	</body>
+		</style> -->
+  </head>
+  <body
+    class="bg-gradient-to-r from-red-50 to-blue-50 text-base dark:from-stone-800 dark:to-zinc-800 dark:text-gray-100"
+  >
+    <Header />
+    <main class="mx-auto prose dark:prose-invert">
+      <h1 class="text-center text-4xl font-bold font-serif tracking-tight">Essays</h1>
+      <section>
+        <ul class="w-fit mx-auto marker:text-neutral-500 dark:marker:text-neutral-400">
+          {
+            posts.filter(notDraft).map((post) => (
+              <li>
+                {/* <time class="w-[10ch]" datetime={post.frontmatter.pubDate}>
+                  {new Date(post.frontmatter.pubDate).toLocaleDateString("en-us", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </time> */}
+                <a href={post.url} class="visited:text-rose-800 dark:visited:text-rose-400">
+                  {post.frontmatter.title}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+    <!-- <Footer /> -->
+  </body>
 </html>
