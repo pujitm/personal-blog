@@ -8,35 +8,52 @@ import Time from "../components/Time.astro";
 const posts = (await Astro.glob("./blog/*.{md,mdx}"))
   .filter((post) => !post.frontmatter.draft)
   .sort(
-    (a, b) =>
-      new Date(b.frontmatter.pubDate).valueOf() -
-      new Date(a.frontmatter.pubDate).valueOf()
+    (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
   );
 ---
 
-<Base description={SITE_DESCRIPTION} title={SITE_TITLE}>
+<Base description={SITE_DESCRIPTION} title={SITE_TITLE} emptyFooter>
   <main class="mx-4">
-    <h1 class="text-3xl text-center my-2 sm:my-3">pujit's blog</h1>
+    <div
+      class="my-16 container max-w-3xl mx-auto text-neutral-900/95 dark:text-neutral-100/90 border-neutral-900 dark:border-neutral-100"
+    >
+      <h1 class="text-3xl text-start font-serif tracking-normal leading-normal">
+        pujit is a programmer and entrepreneur specializing in distributed systems.
+      </h1>
+      <div class="my-20 flex gap-10 flex-wrap">
+        <a
+          class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5 group transition-all"
+          href="">Say Hi →</a
+        >
+        <a class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5" href=""
+          >Past Work</a
+        >
+        <a class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5" href=""
+          >Writing</a
+        >
+      </div>
+      <div class="text-center xl:text-start">
+        <quote class="text-base tracking-wide">Clear. Simple. Curious.</quote>
+      </div>
+      <!-- <quote class="text-base tracking-wider">Clear. Curious. Care.</quote> -->
+    </div>
+
+    <!-- <h1 class="text-3xl text-center my-2 sm:my-3">pujit's blog</h1>
     <p class="text-center text-lg sm:pb-4 lg:pb-5">hopefully helpful writing</p>
     <div class="my-4 mx-auto">
-      <div
-        class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto"
-      >
+      <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
         {
           posts.map((post) => (
             <a
-              class="flex flex-col rounded-lg p-4 border border-green-900 dark:border-rose-300 hover:bg-stone-100 dark:hover:bg-gray-800 transition duration-300 ease-in-out shadow"
+              class="flex flex-col rounded-lg p-4 border border-blue-600 dark:border-rose-300 hover:bg-stone-100 dark:hover:bg-gray-800 transition duration-300 ease-in-out shadow"
               href={post.url}
             >
               <time datetime={post.frontmatter.pubDate} class="sm:mb-2">
-                {new Date(post.frontmatter.pubDate).toLocaleDateString(
-                  "en-us",
-                  {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  }
-                )}
+                {new Date(post.frontmatter.pubDate).toLocaleDateString("en-us", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}
               </time>
               <p class="capitalize">{post.frontmatter.title}</p>
             </a>
@@ -44,12 +61,8 @@ const posts = (await Astro.glob("./blog/*.{md,mdx}"))
         }
       </div>
     </div>
-    <p class="text-center text-lg py-4 lg:py-8">
-      talks, publications, and previous work
-    </p>
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto"
-    >
+    <p class="text-center text-lg py-4 lg:py-8">talks, publications, and previous work</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
       <SimpleCardLink
         class="border-blue-600 dark:border-blue-300 shadow-none"
         href="https://mascotyou.com/"
@@ -85,18 +98,13 @@ const posts = (await Astro.glob("./blog/*.{md,mdx}"))
         <Time date="Feb 12 2022" />
         Git extension to standardize commit messages
       </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="/article/rrr"
-      >
+      <SimpleCardLink class="border-blue-600 dark:border-blue-300 shadow-none" href="/article/rrr">
         <Time date="May 31 2017" />
         Radically Revolutionary Robots
       </SimpleCardLink>
     </div>
     <p class="text-center text-lg py-4 lg:py-8">side projects</p>
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto"
-    >
+    <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
       <SimpleCardLink
         class="border-blue-600 dark:border-blue-300 shadow-none"
         href="https://github.com/pujitm/bskins-bot"
@@ -118,6 +126,6 @@ const posts = (await Astro.glob("./blog/*.{md,mdx}"))
         <Time date="Jul 17 2017" />
         Super Smash Bros. Melee Android App
       </SimpleCardLink>
-    </div>
+    </div> -->
   </main>
 </Base>

@@ -1,7 +1,11 @@
 ---
 const today = new Date();
+export interface Props {
+  empty?: boolean;
+}
+const { empty } = Astro.props;
 ---
 
 <footer class="text-center p-6 text-sm">
-  &copy; {today.getFullYear()} Pujit Mehrotra.
+  {!empty && <span>&copy; {today.getFullYear()} Pujit Mehrotra.</span>}
 </footer>
