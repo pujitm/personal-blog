@@ -5,6 +5,7 @@ import MobileNav from "./MobileNav.astro";
 import type { NavItem } from "./navItem";
 
 const items: NavItem[] = [
+  { url: "/", icon: { pack: "mdi", name: "home" } },
   { url: "https://github.com/pujitm", target: "_blank", icon: { pack: "mdi", name: "github" } },
   {
     url: "https://www.linkedin.com/in/pujitm/",
@@ -16,7 +17,7 @@ const items: NavItem[] = [
     target: "_blank",
     title: "X",
   },
-  { title: "RSS", url: "/rss.xml" },
+  { title: "blog", url: "/blog" },
 ];
 ---
 
