@@ -1,0 +1,52 @@
+---
+import Base from "../layouts/BaseLayout.astro";
+import screenshot from "../assets/legislaide-screenshot.png";
+import { Image } from "astro:assets";
+---
+
+<Base emptyFooter>
+  <main class="mx-4">
+    <h1 class="text-center text-4xl font-bold font-serif tracking-tight">Notable Work</h1>
+    <div class="max-w-3xl mx-auto my-20 prose dark:prose-invert">
+      <h2>Legislaide</h2>
+      <p>
+        I was the technical cofounder at Legislaide and Chief Technology Officer until 2024. We made
+        it simple for city and county government officials to generate policies, resolutions, and
+        parliamentary stuff.
+      </p>
+      <a href="https://www.legislaide.com/">Link to Website</a>
+      <ul>
+        <li>
+          Built a policy-writing product based on GPT-4 for government use end-to-end, including
+          design, frontend, backend, security, and infrastructure.
+        </li>
+        <li>
+          Created Python tools for model analytics and training involving input from non-technical
+          colleagues, improving bug resolution and feature development times over 10x.
+        </li>
+      </ul>
+
+      <div class="relative overflow-hidden">
+        <Image src={screenshot} alt="Legislaide website screenshot" class="rounded-2xl" />
+        <!-- <div class="absolute bg-gradient-to-t from-inherit h-[10%] bottom-6 left-0 w-full"></div>
+        <div class="absolute bg-gradient-to-l from-inherit w-[10%] bottom-0 right-0 h-[80%]"></div> -->
+      </div>
+
+      <h2>Talk: Broad Applications of Language Generation</h2>
+      <p>
+        Spoke about present and future applications of generative artificial intelligence in June
+        2023.
+      </p>
+      <iframe
+        class="rounded-xl"
+        width="100%"
+        height="315"
+        src="https://www.youtube-nocookie.com/embed/D4lCzCLSO-s?si=2lzv7EdLXVeb080r"
+        title="YouTube video player"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen></iframe>
+    </div>
+  </main>
+</Base>
