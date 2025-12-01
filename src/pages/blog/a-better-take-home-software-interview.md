@@ -1,7 +1,7 @@
 ---
 layout: "../../layouts/SimpleBlogPost.astro"
 title: "A better take-home interview"
-description: "A reflection on a take-home interview exercise at Be Next Tech/Kachow."
+description: "A reflection on the take-home exercise I created at Kachow."
 pubDate: "Jul 20 2020"
 # heroImage: "/placeholder-hero.jpg"
 ---

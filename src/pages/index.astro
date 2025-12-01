@@ -1,26 +1,78 @@
 ---
 import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
 import Base from "../layouts/BaseLayout.astro";
-import SimpleCardLink from "../components/SimpleCardLink.astro";
-import Time from "../components/Time.astro";
+import Timeline from "../components/Timeline.astro";
 
-// Use Astro.glob() to fetch all posts, and then sort them by date.
 const posts = (await Astro.glob("./blog/*.{md,mdx}"))
   .filter((post) => !post.frontmatter.draft)
   .sort(
-    (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
+    (a, b) =>
+      new Date(b.frontmatter.pubDate).valueOf() -
+      new Date(a.frontmatter.pubDate).valueOf()
   );
+
+const talk = {
+  date: new Date("Jun 29, 2023"),
+  title: "Broad Applications of Language Generation",
+  description:
+    "Spoke about artificial intelligence and gave a demonstration of Legislaide.",
+  youtube: "D4lCzCLSO-s",
+};
+
+const timelineItems = [
+  ...posts.map((post) => ({
+    date: new Date(post.frontmatter.pubDate),
+    title: post.frontmatter.title,
+    description: post.frontmatter.description,
+    link: { href: post.url!, text: "Read" },
+  })),
+  talk,
+  {
+    date: new Date("Sep 05, 2022"),
+    title: "FunOV - Functional validation library for Typescript",
+    description: "Mostly replaced by Zod etc. but useful in niche cases.",
+    link: { href: "https://github.com/pujitm/fun-ov", text: "GitHub" },
+  },
+  {
+    date: new Date("Feb 12, 2022"),
+    title: "Git Ice",
+    description: "Interactive CLI to standardize commit messages in teams.",
+    link: { href: "https://github.com/pujitm/git-ice", text: "GitHub" },
+  },
+  {
+    date: new Date("Oct 29, 2025"),
+    title: "Unraid API",
+    description: "Core developer of the Unraid API, the central admin API for Unraid OS.",
+    link: { href: "https://github.com/unraid/api", text: "GitHub" },
+  },
+  {
+    date: new Date("Jan 13, 2024"),
+    title: "Legislaide - AI for drafting local gov policy",
+    description: "Built a policy-writing product for governments based on GPT-4. Was used in Denver and Massachusetts.",
+    link: { href: "https://www.legislaide.com/", text: "Website" },
+  },
+]
+  .sort((a, b) => b.date.valueOf() - a.date.valueOf())
+  .map((item) => ({
+    ...item,
+    date: item.date.toLocaleDateString("en-us", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }),
+  }));
 ---
 
 <Base description={SITE_DESCRIPTION} title={SITE_TITLE} emptyFooter>
   <main class="mx-4">
     <div
-      class="my-16 container max-w-3xl mx-auto text-neutral-900/95 dark:text-neutral-100/90 border-neutral-900 dark:border-neutral-100"
+      class="my-16 space-y-16 container max-w-3xl mx-auto text-neutral-900/95 dark:text-neutral-100/90 border-neutral-900 dark:border-neutral-100"
     >
       <h1 class="text-3xl text-start font-serif tracking-normal leading-normal">
-        pujit is a programmer and founder <br class="hidden sm:inline"> who enjoys learning.
+        pujit is a programmer and founder <br class="hidden sm:inline" /> who enjoys
+        learning.
       </h1>
-      <div class="my-20 flex gap-10 flex-wrap">
+      <!-- <div class="my-20 flex gap-10 flex-wrap">
         <a
           class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5"
           href="mailto:pujitm2009@gmail.com">Say Hi →</a
@@ -29,14 +81,9 @@ const posts = (await Astro.glob("./blog/*.{md,mdx}"))
           class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5"
           href="/work">Past Work</a
         >
-        <a
-          class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5"
-          href="/blog">Writing</a
-        >
-      </div>
-      <div class="text-center xl:text-start">
-        <quote class="text-base tracking-wide">Clear. Simple. Curious.</quote>
-      </div>
+      </div> -->
+
+      <Timeline items={timelineItems} />
     </div>
 
     <!-- <h1 class="text-3xl text-center my-2 sm:my-3">pujit's blog</h1>

@@ -8,6 +8,13 @@ pubDate: "Sep 17 2022"
 
 # How to Go Pro in Counter Strike: Global Offensive
 
+> Edit (Nov 30, 2025): I'm embarassed of this article because it belabors the obvious and doesn't point out the less intuitive.
+> I'd point out the following to my younger self:
+>
+> Temperment vs. Strengths -- Play to your strengths rather than personality, especially as a beginner. You should pick one lane/role and stick to it, rather than becoming generally competent, as I stupidly tried to do.
+>
+> You can't do it alone. You'll get much further becoming a specialist and relying on others (coaches, teammates) to fill in the gaps.
+
 **A Noob's Perspective**
 
 So you've spent dozens, maybe hundreds, maybe thousands, of hours playing deathmatch and watching demos from pros and yourself, but you're still no closer to being a pro than you were a couple months ago.

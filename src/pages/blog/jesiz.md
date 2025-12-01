@@ -1,7 +1,7 @@
 ---
 layout: "../../layouts/SimpleBlogPost.astro"
 title: "What I learned from Jesiz"
-description: ""
+description: "Insights from a League of Legends Pro"
 pubDate: "Mar 10 2024"
 # heroImage: "/placeholder-hero.jpg"
 ---
