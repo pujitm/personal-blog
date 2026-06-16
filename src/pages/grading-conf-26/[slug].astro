@@ -3,13 +3,17 @@ import GradingConferenceLayout from "../../layouts/GradingConferenceLayout.astro
 import { essays } from "../../lib/grading-conf-26";
 
 export function getStaticPaths() {
-  return essays.map((essay) => ({
+  return essays.map((essay, index) => ({
     params: { slug: essay.slug },
-    props: { essay },
+    props: {
+      essay,
+      nextEssay: essays[index + 1],
+      previousEssay: essays[index - 1],
+    },
   }));
 }
 
-const { essay } = Astro.props;
+const { essay, nextEssay, previousEssay } = Astro.props;
 const title = `${essay.abstractTitle} | The Grading Conference 2026`;
 const description = `Essay inspired by ${essay.author}'s abstract at The Grading Conference 2026.`;
 ---
@@ -37,6 +41,27 @@ const description = `Essay inspired by ${essay.author}'s abstract at The Grading
         </div>
       </div>
     </article>
+
+    <nav class="essay-nav" aria-label="Essay navigation">
+      {
+        previousEssay ? (
+          <a class="essay-nav-link essay-nav-previous" href={`/grading-conf-26/${previousEssay.slug}`}>
+            <span>Previous</span>
+            {previousEssay.abstractTitle}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        nextEssay && (
+          <a class="essay-nav-link essay-nav-next" href={`/grading-conf-26/${nextEssay.slug}`}>
+            <span>Next</span>
+            {nextEssay.abstractTitle}
+          </a>
+        )
+      }
+    </nav>
 
     <a class="back-link back-link-bottom" href="/grading-conf-26">Back to series</a>
   </main>
