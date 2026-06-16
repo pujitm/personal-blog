@@ -256,10 +256,18 @@ const { title, description, bodyClass = "" } = Astro.props;
 
   .essay-body p:first-child::first-letter {
     color: #8f2f23;
-    float: left;
-    font-size: 4.6em;
-    line-height: 0.78;
-    padding: 0.08em 0.08em 0 0;
+    -webkit-initial-letter: 3;
+    initial-letter: 3;
+    margin-right: 0.14em;
+  }
+
+  @supports not (initial-letter: 3) {
+    .essay-body p:first-child::first-letter {
+      float: left;
+      font-size: 3.4em;
+      line-height: 0.86;
+      padding: 0.08em 0.18em 0.02em 0;
+    }
   }
 
   @media (max-width: 760px) {
