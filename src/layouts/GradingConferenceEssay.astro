@@ -8,11 +8,11 @@ export interface Props {
     author: string;
     abstract: string[];
     previous?: {
-      slug: string;
+      number: number;
       title: string;
     };
     next?: {
-      slug: string;
+      number: number;
       title: string;
     };
   };
@@ -52,7 +52,7 @@ const description = `Essay inspired by ${content.author}'s abstract at The Gradi
         content.previous ? (
           <a
             class="essay-nav-link essay-nav-previous"
-            href={`/grading-conf-26/${content.previous.slug}`}
+            href={`/grading-conf-26/${content.previous.number}`}
           >
             <span>Previous</span>
             {content.previous.title}
@@ -65,7 +65,7 @@ const description = `Essay inspired by ${content.author}'s abstract at The Gradi
         content.next && (
           <a
             class="essay-nav-link essay-nav-next"
-            href={`/grading-conf-26/${content.next.slug}`}
+            href={`/grading-conf-26/${content.next.number}`}
           >
             <span>Next</span>
             {content.next.title}
