@@ -1,0 +1,31 @@
+---
+number: 1
+slug: "beyond-detection"
+abstractTitle: "Beyond Detection: Authentic Thinking as a Framework for Grading in the Age of AI"
+author: "Trent Kays"
+abstract:
+  - >-
+    The proliferation of generative AI has created an assessment crisis with institutions responding through detection software and restrictive policies. These approaches treat AI as poison to be eliminated rather than engaging deeper pedagogical questions about what we value in student work. Bernard Stiegler's philosophy of technics (particularly his concept of authentic thinking) offers a more productive framework for reimagining grading in response to AI.
+  - >-
+    This theoretical exploration investigates how Stiegler's concepts of authentic versus inauthentic thinking and individuation can inform both traditional grading's failures and alternative grading's potential to foster genuine intellectual engagement in AI-saturated environments.
+  - >-
+    Stiegler distinguishes authentic thinking (individual engagement requiring struggle and active participation) from inauthentic thinking (passive consumption of pre-formed thoughts). Traditional grading, which emphasizes standardized products and algorithmic evaluation, already functions as an "industrial temporal object" that synchronizes consciousness and discourages authentic engagement. AI tools simply make visible what has long been true: traditional grading often fails to require or reward authentic thinking.
+  - >-
+    Alternative grading practices, such as ungrading, specifications grading, process-based assessment, align with Stieglerian authentic thinking by: (1) emphasizing iterative revision over single-draft products, (2) valuing learning processes over polished products, (3) using qualitative feedback rather than quantitative ranking, and (4) creating conditions for genuine individuation rather than synchronized performance. The question shifts from "how do we prevent AI use?" to "how do we design grading requiring authentic thinking?"
+  - >-
+    This framework offers alternative grading practitioners philosophical grounding for why their approaches aren't merely pragmatic but pedagogically sound in fostering authentic intellectual development.
+---
+
+Questioning the design of grading is quite timely, and I think it has the highest potential, of grading research concerns, to yield the structural changes Education needs. I'm dissatisfied, however, with Professor Kays' implicit framing of where the design problem lies: in the conception of education, in the justification of alternative grading pedagogy.
+
+These are not the critical design challenges; contrary to popular belief, refining them will not affect the institution. There's been an ancient political struggle between the spiritual and utilitarian camps of education - Professor Mehta writes about these battling paradigms in the American context in his book, The Allure of Order. Historically, the utilitarian camp always seems to be dominant. Why? Because they've wielded greater political, economic, and social influence? Because the spiritual camps' arguments aren't clear or convincing enough?
+
+That conclusion - hypothesis, rather - is a reach. There's another hypothesis we must reject before continuing to consider the former: that the utilitarian camp has dominated because they accommodate, implicitly or explicitly, critical constraints that the spiritual camp does not. These constraints are not fabrications, but rather emergent from organizing and interoperating an institution at scale. They are generally logistical: economic constraints, supply chain constraints, communication restraints.
+
+There is not nearly enough evidence to reject this hypothesis. My suspicion is that it is actually correct. In fact, I hope it is because it's deterministically solvable, especially compared to problem space implied by the original hypothesis. We can control our fate in the latter paradigm; less so in the former.
+
+A provocative read of Kays' abstract is that it furthers the status quo in reinforcing the dichotomy between the spiritual and utilitarian camps. I think this dichotomy has been fruitless politically, and I don't see a strong reason why that would change, so continuing to invest in this paradigm seems unproductive.
+
+We all sense, I think, that the status quo is untenable and change is in the air. I would like to see the institution of Education emerge more structurally sound, rather than decorated with scraps of educational concessions after decades of battle, as has historically been the case. It isn't enough this time. Those victories seem always to be hard-won and short-lived.
+
+So, instead of warring over best practice, I think we should work together to get the institution right.

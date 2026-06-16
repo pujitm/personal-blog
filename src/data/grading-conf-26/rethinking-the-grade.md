@@ -1,0 +1,19 @@
+---
+number: 2
+slug: "rethinking-the-grade"
+abstractTitle: "Rethinking the Grade: Problems with Traditional Grading"
+author: "Ashleigh Fox"
+abstract:
+  - >-
+    This session situates alternative grading within decades of research critiquing traditional grading practices as ineffective and, in many cases, harmful to students. The talk will define "traditional grading" and provide a brief overview of its history before transitioning to the literature exploring the problems with traditional grading and learning, particularly regarding motivation (Blum, 2020; Butler, 1998; Chamberlin et al., 2018), consistency (Brookhart et al., 2016; Starch & Elliot, 1912), equity (Ashby-King et al., 2021; Chemaly, 2015; Inoue, 2020; Lince, 2021; Rapchak et al. 2023), mental health (Bouchrika, 2020; De Luca et al., 2016; Reinberg, 2018), and self-efficacy (Anderson, 2018; Lake et al., 2018). In light of these limitations, the session concludes by suggesting that alternative grading methods may better support learning through reflection of real-world contexts and recognition of the diverse ways individuals acquire and demonstrate knowledge.
+---
+
+In my response to Professor Kays' Beyond Detection abstract, I question wars of best practice and which problems we focus on: the justification of grading pedagogy versus constraints preventing better design. Those questions echo as I read this abstract, but instead of repeating them, I want to discuss a different concern: heuristic versus core issues in education.
+
+The abstract lists several problems exacerbated by traditional grading - motivation, consistency, equity, mental-health, and self-efficacy - and it could list many more. Education entails an overwhelming number of issues, many intertwined, and each non-trivial. We could try to analyze and address each, but I suspect this is a sign that we're thinking at the wrong level of abstraction. It's a sign that those issues are heuristic, in the same way that students' economic success is a heuristic.
+
+Despite their significance, neither is core to education, and as a result, focusing them risks producing noise instead of clarity. In fact, the more significant a heuristic issue is, the higher this risk is, because the significance makes it difficult, uncomfortable, and socially risky to shelve. So when an educational discussion focuses on mental health and sociological issues, I grow wary, not because they're not important, not because they're not acute, but because they aren't goals of education. They're not why education exists.
+
+However, I don't think Professor Fox is falling for this trap. She's using them as indicators that traditional grading and the status quo aren't working well, supporting the need for grading methods more conducive to learning. No - I'm worried that advocates or designers of alternative grading methods may leave the session with disproportionate attention towards heuristic issues, rather than the role of grades and education. The latter will help simplify the design and adoption of grading, but I worry the former will complicate it.
+
+"Traditional" grading is, after all, a relatively new phenomenon; it isn't well understood. One general theme I expect to emerge, eventually, is that alternative grading methods try to get out of the way of education. I hope the session will explore why grades are in the way and what's stopping them from getting out. Excited for this session.

@@ -14,6 +14,7 @@ export function getStaticPaths() {
 }
 
 const { essay, nextEssay, previousEssay } = Astro.props;
+const EssayContent = essay.Content;
 const title = `${essay.abstractTitle} | The Grading Conference 2026`;
 const description = `Essay inspired by ${essay.author}'s abstract at The Grading Conference 2026.`;
 ---
@@ -41,7 +42,7 @@ const description = `Essay inspired by ${essay.author}'s abstract at The Grading
                 </details>
 
                 <div class="essay-body">
-                    {essay.essay.map((paragraph) => <p>{paragraph}</p>)}
+                    <EssayContent />
                 </div>
             </div>
         </article>
