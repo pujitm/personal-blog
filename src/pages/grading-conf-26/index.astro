@@ -1,0 +1,67 @@
+---
+import GradingConferenceLayout from "../../layouts/GradingConferenceLayout.astro";
+
+const title = "The Grading Conference 2026";
+const description =
+    "Short essays on grading, education, and The Grading Conference 2026.";
+const posterUrl =
+    "https://docs.google.com/presentation/d/1y4jAfBm8XVSH0OIO-Lng9KiDSItrkRyFKN2p0tGAats/edit?usp=sharing";
+const essayModules = import.meta.glob("./*.md", { eager: true });
+const essays = Object.values(essayModules).sort(
+    (a, b) => a.frontmatter.number - b.frontmatter.number,
+);
+---
+
+<GradingConferenceLayout title={title} description={description}>
+    <main class="page-shell">
+        <header class="hero">
+            <p class="kicker">The Grading Conference 2026</p>
+            <h1>Hi, I'm <a href="/"> Pujit </a></h1>
+            <p class="dek">
+                I'm researching systemic problems in education. I'm presenting <a
+                    href={posterUrl}>a poster</a
+                > proposing a new grading system that could reconcile the incentive
+                structure.
+            </p>
+        </header>
+
+        <section class="intro-grid" aria-label="Series notes">
+            <div class="space-y-4">
+                <h2>Premise</h2>
+                <p>
+                    Inspired by reading the 66 abstracts at this year's Grading
+                    Conference, I'm writing short essays to energize discussion
+                    about the direction of educational research and reform
+                    activity. The essays are written sans AI.
+                </p>
+                <p>
+                    Original abstracts can be found on the <a
+                        href="https://www.centerforgradingreform.org/grading-conference/abstracts/"
+                    >
+                        conference website
+                    </a>
+                    and quoted before the body of each essay.
+                </p>
+            </div>
+        </section>
+
+        <section class="essays" aria-label="Essays">
+            {
+                essays.map((essay) => (
+                    <article class="essay-card">
+                        <p class="essay-number">#{essay.frontmatter.number}</p>
+                        <div>
+                            <p class="byline">Inspired by</p>
+                            <h2>
+                                <a href={essay.url}>
+                                    {essay.frontmatter.abstractTitle}
+                                </a>
+                            </h2>
+                            <p class="byline">{essay.frontmatter.author}</p>
+                        </div>
+                    </article>
+                ))
+            }
+        </section>
+    </main>
+</GradingConferenceLayout>

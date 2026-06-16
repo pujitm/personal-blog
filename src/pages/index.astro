@@ -3,7 +3,8 @@ import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
 import Base from "../layouts/BaseLayout.astro";
 import Timeline from "../components/Timeline.astro";
 
-const posts = (await Astro.glob("./blog/*.{md,mdx}"))
+const postModules = import.meta.glob("./blog/*.{md,mdx}", { eager: true });
+const posts = Object.values(postModules)
   .filter((post) => !post.frontmatter.draft)
   .sort(
     (a, b) =>
