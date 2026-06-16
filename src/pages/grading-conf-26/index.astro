@@ -7,9 +7,9 @@ const description =
 const posterUrl =
     "https://docs.google.com/presentation/d/1y4jAfBm8XVSH0OIO-Lng9KiDSItrkRyFKN2p0tGAats/edit?usp=sharing";
 const essayModules = import.meta.glob("./*.md", { eager: true });
-const essays = Object.values(essayModules).sort(
-    (a, b) => a.frontmatter.number - b.frontmatter.number,
-);
+const essays = Object.values(essayModules)
+    .filter((essay) => essay.frontmatter.listed !== false)
+    .sort((a, b) => a.frontmatter.number - b.frontmatter.number);
 ---
 
 <GradingConferenceLayout title={title} description={description}>
