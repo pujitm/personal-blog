@@ -1,8 +1,12 @@
 ---
+layout: "../../layouts/GradingConferenceEssay.astro"
 number: 1
 slug: "beyond-detection"
 abstractTitle: "Beyond Detection: Authentic Thinking as a Framework for Grading in the Age of AI"
 author: "Trent Kays"
+next:
+  slug: "rethinking-the-grade"
+  title: "Rethinking the Grade: Problems with Traditional Grading"
 abstract:
   - >-
     The proliferation of generative AI has created an assessment crisis with institutions responding through detection software and restrictive policies. These approaches treat AI as poison to be eliminated rather than engaging deeper pedagogical questions about what we value in student work. Bernard Stiegler's philosophy of technics (particularly his concept of authentic thinking) offers a more productive framework for reimagining grading in response to AI.

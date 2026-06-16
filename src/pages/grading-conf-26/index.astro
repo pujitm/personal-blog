@@ -1,10 +1,14 @@
 ---
 import GradingConferenceLayout from "../../layouts/GradingConferenceLayout.astro";
-import { essays, posterUrl } from "../../lib/grading-conf-26";
 
 const title = "The Grading Conference 2026";
 const description =
     "Short essays on grading, education, and The Grading Conference 2026.";
+const posterUrl =
+    "https://docs.google.com/presentation/d/1y4jAfBm8XVSH0OIO-Lng9KiDSItrkRyFKN2p0tGAats/edit?usp=sharing";
+const essays = (await Astro.glob("./*.md")).sort(
+    (a, b) => a.frontmatter.number - b.frontmatter.number,
+);
 ---
 
 <GradingConferenceLayout title={title} description={description}>
@@ -44,15 +48,15 @@ const description =
             {
                 essays.map((essay) => (
                     <article class="essay-card">
-                        <p class="essay-number">#{essay.number}</p>
+                        <p class="essay-number">#{essay.frontmatter.number}</p>
                         <div>
                             <p class="byline">Inspired by</p>
                             <h2>
-                                <a href={`/grading-conf-26/${essay.slug}`}>
-                                    {essay.abstractTitle}
+                                <a href={essay.url}>
+                                    {essay.frontmatter.abstractTitle}
                                 </a>
                             </h2>
-                            <p class="byline">{essay.author}</p>
+                            <p class="byline">{essay.frontmatter.author}</p>
                         </div>
                     </article>
                 ))

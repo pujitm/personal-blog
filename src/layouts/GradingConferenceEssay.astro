@@ -1,0 +1,79 @@
+---
+import GradingConferenceLayout from "./GradingConferenceLayout.astro";
+
+export interface Props {
+  content: {
+    number: number;
+    abstractTitle: string;
+    author: string;
+    abstract: string[];
+    previous?: {
+      slug: string;
+      title: string;
+    };
+    next?: {
+      slug: string;
+      title: string;
+    };
+  };
+}
+
+const { content } = Astro.props;
+const title = `${content.abstractTitle} | The Grading Conference 2026`;
+const description = `Essay inspired by ${content.author}'s abstract at The Grading Conference 2026.`;
+---
+
+<GradingConferenceLayout title={title} description={description} bodyClass="essay-page">
+  <main class="page-shell">
+    <article>
+      <header class="hero">
+        <p class="essay-number">#{content.number}</p>
+        <p class="inspired-by">Inspired by</p>
+        <h1>{content.abstractTitle}</h1>
+        <p class="byline">{content.author}</p>
+      </header>
+
+      <div class="reading-panel">
+        <details class="abstract-panel">
+          <summary>Original abstract</summary>
+          <div class="abstract-copy">
+            {content.abstract.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </details>
+
+        <div class="essay-body">
+          <slot />
+        </div>
+      </div>
+    </article>
+
+    <nav class="essay-nav" aria-label="Essay navigation">
+      {
+        content.previous ? (
+          <a
+            class="essay-nav-link essay-nav-previous"
+            href={`/grading-conf-26/${content.previous.slug}`}
+          >
+            <span>Previous</span>
+            {content.previous.title}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        content.next && (
+          <a
+            class="essay-nav-link essay-nav-next"
+            href={`/grading-conf-26/${content.next.slug}`}
+          >
+            <span>Next</span>
+            {content.next.title}
+          </a>
+        )
+      }
+    </nav>
+
+    <a class="back-link back-link-bottom" href="/grading-conf-26">Back to series</a>
+  </main>
+</GradingConferenceLayout>

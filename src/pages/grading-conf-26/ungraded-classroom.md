@@ -1,8 +1,12 @@
 ---
+layout: "../../layouts/GradingConferenceEssay.astro"
 number: 3
 slug: "ungraded-classroom"
 abstractTitle: "How Students Experience an Ungraded Classroom"
 author: "Sarah Beal"
+previous:
+  slug: "rethinking-the-grade"
+  title: "Rethinking the Grade: Problems with Traditional Grading"
 abstract:
   - >-
     This panel will bring together three students from two different ungraded courses that were taught during the proposer's first implementation of an alternative grading approach. In these ungraded courses, students received formative feedback throughout the semester and engaged in guided grading reflections. They then met with the instructor individually at the end of the semester to self-assign their own final grades.

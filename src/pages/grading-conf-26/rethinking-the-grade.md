@@ -1,8 +1,15 @@
 ---
+layout: "../../layouts/GradingConferenceEssay.astro"
 number: 2
 slug: "rethinking-the-grade"
 abstractTitle: "Rethinking the Grade: Problems with Traditional Grading"
 author: "Ashleigh Fox"
+previous:
+  slug: "beyond-detection"
+  title: "Beyond Detection: Authentic Thinking as a Framework for Grading in the Age of AI"
+next:
+  slug: "ungraded-classroom"
+  title: "How Students Experience an Ungraded Classroom"
 abstract:
   - >-
     This session situates alternative grading within decades of research critiquing traditional grading practices as ineffective and, in many cases, harmful to students. The talk will define "traditional grading" and provide a brief overview of its history before transitioning to the literature exploring the problems with traditional grading and learning, particularly regarding motivation (Blum, 2020; Butler, 1998; Chamberlin et al., 2018), consistency (Brookhart et al., 2016; Starch & Elliot, 1912), equity (Ashby-King et al., 2021; Chemaly, 2015; Inoue, 2020; Lince, 2021; Rapchak et al. 2023), mental health (Bouchrika, 2020; De Luca et al., 2016; Reinberg, 2018), and self-efficacy (Anderson, 2018; Lake et al., 2018). In light of these limitations, the session concludes by suggesting that alternative grading methods may better support learning through reflection of real-world contexts and recognition of the diverse ways individuals acquire and demonstrate knowledge.
