@@ -185,7 +185,6 @@ const { title, description, bodyClass = "" } = Astro.props;
   }
 
   .essay-card {
-    background: rgba(255, 255, 255, 0.55);
     border-top: 2px solid #1e1f1c;
     display: grid;
     gap: 42px;
@@ -234,12 +233,14 @@ const { title, description, bodyClass = "" } = Astro.props;
   }
 
   .reading-panel {
-    background: rgba(255, 254, 249, 0.94);
-    border-left: 2px solid #1e1f1c;
-    box-shadow: 0 22px 70px rgba(30, 31, 28, 0.1);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 254, 249, 0.9),
+      rgba(255, 254, 249, 0.72)
+    );
     margin-top: 42px;
     max-width: 850px;
-    padding: clamp(24px, 4vw, 46px);
+    padding: clamp(18px, 3vw, 34px) clamp(20px, 4vw, 42px);
   }
 
   .essay-body {
@@ -295,8 +296,6 @@ const { title, description, bodyClass = "" } = Astro.props;
     }
 
     .reading-panel {
-      border-left: 0;
-      box-shadow: none;
       margin-left: -18px;
       margin-right: -18px;
       padding: 24px 18px;
