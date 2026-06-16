@@ -5,8 +5,8 @@ import Footer from "../components/Footer.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
 import { notDraft } from "../lib/blog";
 
-// Use Astro.glob() to fetch all posts, and then sort them by date.
-const posts = (await Astro.glob("./blog/*.{md,mdx}")).sort(
+const postModules = import.meta.glob("./blog/*.{md,mdx}", { eager: true });
+const posts = Object.values(postModules).sort(
   (a, b) => new Date(b.frontmatter.pubDate).valueOf() - new Date(a.frontmatter.pubDate).valueOf()
 );
 ---
