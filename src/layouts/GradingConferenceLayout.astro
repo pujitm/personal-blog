@@ -1,0 +1,281 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+
+export interface Props {
+  title: string;
+  description: string;
+  bodyClass?: string;
+}
+
+const { title, description, bodyClass = "" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class={bodyClass}>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  html {
+    background: #f8f7f2;
+    color: #1e1f1c;
+    font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui,
+      sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(90deg, rgba(14, 70, 69, 0.11) 1px, transparent 1px),
+      linear-gradient(180deg, rgba(14, 70, 69, 0.08) 1px, transparent 1px),
+      #f8f7f2;
+    background-size: 44px 44px;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .page-shell {
+    margin: 0 auto;
+    max-width: 1120px;
+    padding: 64px 24px 96px;
+  }
+
+  .hero {
+    border-bottom: 2px solid #1e1f1c;
+    padding: 32px 0 44px;
+  }
+
+  .kicker,
+  .essay-number,
+  .byline,
+  .inspired-by,
+  .essay-index span {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .kicker,
+  .essay-number,
+  .inspired-by {
+    color: #0d6b66;
+  }
+
+  h1,
+  h2 {
+    font-family: "EB Garamond", Georgia, serif;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  h1 {
+    font-size: clamp(3.5rem, 8vw, 8.25rem);
+    line-height: 0.88;
+    margin: 12px 0 28px;
+    max-width: 940px;
+  }
+
+  .essay-page h1 {
+    font-size: clamp(3rem, 7vw, 7rem);
+    max-width: 1080px;
+  }
+
+  .dek {
+    font-size: clamp(1.1rem, 2vw, 1.45rem);
+    line-height: 1.55;
+    margin: 0;
+    max-width: 760px;
+  }
+
+  a {
+    color: #0d6b66;
+    text-decoration-thickness: 0.09em;
+    text-underline-offset: 0.17em;
+  }
+
+  a:hover {
+    color: #8f2f23;
+  }
+
+  .back-link {
+    display: inline-block;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+  }
+
+  .back-link-bottom {
+    margin: 42px 0 0;
+  }
+
+  .intro-grid {
+    display: grid;
+    gap: 40px;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
+    padding: 44px 0 32px;
+  }
+
+  .intro-grid h2 {
+    font-size: 2rem;
+    line-height: 1;
+    margin: 0 0 12px;
+  }
+
+  .intro-grid p {
+    font-size: 1.02rem;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 64ch;
+  }
+
+  .essay-index {
+    border-top: 1px solid rgba(30, 31, 28, 0.28);
+    list-style: decimal-leading-zero;
+    margin: 0;
+    padding: 0 0 0 2.2rem;
+  }
+
+  .essay-index li {
+    border-bottom: 1px solid rgba(30, 31, 28, 0.28);
+    padding: 14px 0 16px 8px;
+  }
+
+  .essay-index a {
+    color: #1e1f1c;
+    display: block;
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: 1.22rem;
+    font-weight: 600;
+    line-height: 1.12;
+    text-decoration-color: transparent;
+  }
+
+  .essay-index a:hover {
+    color: #8f2f23;
+    text-decoration-color: currentColor;
+  }
+
+  .essay-index span {
+    color: #5d625d;
+    display: block;
+    margin-top: 6px;
+  }
+
+  .essays {
+    display: grid;
+    gap: 36px;
+    margin-top: 56px;
+  }
+
+  .essay-card {
+    background: rgba(255, 255, 255, 0.55);
+    border-top: 2px solid #1e1f1c;
+    display: grid;
+    gap: 42px;
+    grid-template-columns: minmax(130px, 0.22fr) minmax(0, 1fr);
+    padding: 28px 0 0;
+  }
+
+  .essay-card h2 {
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 0.98;
+    margin: 6px 0 12px;
+  }
+
+  .byline {
+    color: #5d625d;
+    line-height: 1.35;
+    margin: 0;
+  }
+
+  .abstract-panel {
+    border-bottom: 1px solid rgba(30, 31, 28, 0.28);
+    border-top: 1px solid rgba(30, 31, 28, 0.28);
+    margin: 30px 0 42px;
+    max-width: 760px;
+  }
+
+  .abstract-panel summary {
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    list-style-position: outside;
+    padding: 14px 0;
+    text-transform: uppercase;
+  }
+
+  .abstract-copy {
+    color: #3d403b;
+    padding: 2px 0 18px;
+  }
+
+  .abstract-copy p {
+    font-size: 0.98rem;
+    line-height: 1.58;
+    margin: 0 0 1em;
+    max-width: 72ch;
+  }
+
+  .essay-body {
+    max-width: 780px;
+  }
+
+  .essay-body p {
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: clamp(1.23rem, 2vw, 1.45rem);
+    line-height: 1.58;
+    margin: 0 0 1.1em;
+    max-width: 68ch;
+  }
+
+  .essay-body p:first-child::first-letter {
+    color: #8f2f23;
+    float: left;
+    font-size: 4.6em;
+    line-height: 0.78;
+    padding: 0.08em 0.08em 0 0;
+  }
+
+  @media (max-width: 760px) {
+    .page-shell {
+      padding: 36px 18px 72px;
+    }
+
+    .hero {
+      padding-top: 18px;
+    }
+
+    h1,
+    .essay-page h1 {
+      font-size: clamp(3.05rem, 16vw, 5.4rem);
+    }
+
+    .intro-grid,
+    .essay-card {
+      grid-template-columns: 1fr;
+    }
+
+    .essay-card {
+      gap: 12px;
+      padding-top: 24px;
+    }
+  }
+</style>

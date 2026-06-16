@@ -1,346 +1,69 @@
 ---
-import BaseHead from "../../components/BaseHead.astro";
+import GradingConferenceLayout from "../../layouts/GradingConferenceLayout.astro";
+import { essays, posterUrl } from "../../lib/grading-conf-26";
 
 const title = "The Grading Conference 2026";
 const description =
   "Short essays on grading, education, and The Grading Conference 2026.";
-
-const posterUrl =
-  "https://docs.google.com/presentation/d/1y4jAfBm8XVSH0OIO-Lng9KiDSItrkRyFKN2p0tGAats/edit?usp=sharing";
-
-const essays = [
-  {
-    number: 1,
-    abstractTitle:
-      "Beyond Detection: Bernard Stiegler's Authentic Thinking as a Framework for Grading in the Age of AI",
-    author: "Trent Kays",
-    slug: "beyond-detection",
-    essay: [
-      "Questioning the design of grading is quite timely, and I think it has the highest potential, of grading research concerns, to yield the structural changes Education needs. I'm dissatisfied, however, with Professor Kays' implicit framing of where the design problem lies: in the conception of education, in the justification of alternative grading pedagogy.",
-      "These are not the critical design challenges; contrary to popular belief, refining them will not affect the institution. There's been an ancient political struggle between the spiritual and utilitarian camps of education - Professor Mehta writes about these battling paradigms in the American context in his book, The Allure of Order. Historically, the utilitarian camp always seems to be dominant. Why? Because they've wielded greater political, economic, and social influence? Because the spiritual camps' arguments aren't clear or convincing enough?",
-      "That conclusion - hypothesis, rather - is a reach. There's another hypothesis we must reject before continuing to consider the former: that the utilitarian camp has dominated because they accommodate, implicitly or explicitly, critical constraints that the spiritual camp does not. These constraints are not fabrications, but rather emergent from organizing and interoperating an institution at scale. They are generally logistical: economic constraints, supply chain constraints, communication restraints.",
-      "There is not nearly enough evidence to reject this hypothesis. My suspicion is that it is actually correct. In fact, I hope it is because it's deterministically solvable, especially compared to problem space implied by the original hypothesis. We can control our fate in the latter paradigm; less so in the former.",
-      "A provocative read of Kays' abstract is that it furthers the status quo in reinforcing the dichotomy between the spiritual and utilitarian camps. I think this dichotomy has been fruitless politically, and I don't see a strong reason why that would change, so continuing to invest in this paradigm seems unproductive.",
-      "We all sense, I think, that the status quo is untenable and change is in the air. I would like to see the institution of Education emerge more structurally sound, rather than decorated with scraps of educational concessions after decades of battle, as has historically been the case. It isn't enough this time. Those victories seem always to be hard-won and short-lived.",
-      "So, instead of warring over best practice, I think we should work together to get the institution right.",
-    ],
-  },
-  {
-    number: 2,
-    abstractTitle: "Rethinking the Grade: Problems with Traditional Grading",
-    author: "Ashleigh Fox",
-    slug: "rethinking-the-grade",
-    essay: [
-      "In my response to Professor Kays' Beyond Detection abstract, I question wars of best practice and which problems we focus on: the justification of grading pedagogy versus constraints preventing better design. Those questions echo as I read this abstract, but instead of repeating them, I want to discuss a different concern: heuristic versus core issues in education.",
-      "The abstract lists several problems exacerbated by traditional grading - motivation, consistency, equity, mental-health, and self-efficacy - and it could list many more. Education entails an overwhelming number of issues, many intertwined, and each non-trivial. We could try to analyze and address each, but I suspect this is a sign that we're thinking at the wrong level of abstraction. It's a sign that those issues are heuristic, in the same way that students' economic success is a heuristic.",
-      "Despite their significance, neither is core to education, and as a result, focusing them risks producing noise instead of clarity. In fact, the more significant a heuristic issue is, the higher this risk is, because the significance makes it difficult, uncomfortable, and socially risky to shelve. So when an educational discussion focuses on mental health and sociological issues, I grow wary, not because they're not important, not because they're not acute, but because they aren't goals of education. They're not why education exists.",
-      "However, I don't think Professor Fox is falling for this trap. She's using them as indicators that traditional grading and the status quo aren't working well, supporting the need for grading methods more conducive to learning. No - I'm worried that advocates or designers of alternative grading methods may leave the session with disproportionate attention towards heuristic issues, rather than the role of grades and education. The latter will help simplify the design and adoption of grading, but I worry the former will complicate it.",
-      "\"Traditional\" grading is, after all, a relatively new phenomenon; it isn't well understood. One general theme I expect to emerge, eventually, is that alternative grading methods try to get out of the way of education. I hope the session will explore why grades are in the way and what's stopping them from getting out. Excited for this session.",
-    ],
-  },
-  {
-    number: 3,
-    abstractTitle: "How Students Experience an Ungraded Classroom",
-    author: "Sarah Beal",
-    slug: "ungraded-classroom",
-    essay: [
-      "The point of this panel might not be to progress reform, but many in general do have that ambition, so that lens is what's motivating this essay. I say this cautiously, as a recent student: I question whether conversations like this move the needle. On the contrary, I worry they could influence us in unconstructive directions, such as disproportionately valuing a practice's popularity with students.",
-      "De facto, student perception is a factor in evaluating grading practice, but it's a heuristic and a constraint. It shouldn't be treated as a design principle, which could be implied in emphasizing students as active agents in shaping alternative grading approaches. Confusing grading-approach with education, especially at the level of design, seems counter-productive and arguably anti-educational (for example, in a Deweyan sense).",
-      "In other essays, I've gestured at the broad political and philosophical dichotomy in education as the spiritual and utilitarian camps, where the spiritual camp prizes the philosophical and sociological facets of education but the utilitarian camp favors systemization, predictability, and effectiveness, economic or otherwise. In both camps, however, student perception - actually any stakeholder's perception - is best seen as a heuristic concern.",
-      "But what is student perception a heuristic for? Students' interests and needs, I think, in the abstract educational and economic senses: interest in better understanding the world and oneself; interest in social and economic progress. And the shape of their relationship to grading is obvious: it is adversarial. In fact, it's sometimes argued that grades are designed to inhibit these interests.",
-      "In light of this, isn't it futile, in broad strokes, to interview student perception of alternatives, which are inspired directly by the status quo's adversarial nature? I would expect these conversations to yield insight oriented around the reduction or mitigation of this adversarial relationship, but that addresses a symptom, not the disease itself, nor movement towards the students' interests. So I fear the relief resulting from these insights might be temporary, especially as alternative practices coexist inside a dominant, adversarial paradigm.",
-      "I'm not interested in incremental band aids anymore; I don't think any of us should be. Students need more, Education needs more, and grading is only a part of the puzzle. We can't lose sight of that. Iterative improvements make sense in isolation, but the issues in education aren't isolated, and the system and inertia are such that the issues are compounding and expanding at a rate overwhelming the cumulative improvements in various facets of education. Heuristically, this is why policy and pedagogical reform historically feel like they're too little too late. I don't think we can afford that anymore - is there a point when we're too late?",
-      "We know the education system is in a bad place; we know there are untenable flaws in grading practices and many other practices of the system, so shouldn't we be figuring out better plans to fix them? Are students on the critical path for that?",
-    ],
-  },
-];
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <BaseHead title={title} description={description} />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <main class="page-shell">
-      <header class="hero">
-        <p class="kicker">The Grading Conference 2026</p>
-        <h1>Twenty short essays on grading and education</h1>
-        <p class="dek">
-          I am writing a series of responses to the conference's presentations
-          and posters, starting from the 66 abstracts. The series is inspired by
-          <a href={posterUrl}>a poster</a> I am presenting about grades as
-          communication; the essays are written without AI assistance.
+<GradingConferenceLayout title={title} description={description}>
+  <main class="page-shell">
+    <header class="hero">
+      <p class="kicker">The Grading Conference 2026</p>
+      <h1>Twenty short essays on grading and education</h1>
+      <p class="dek">
+        I am writing a series of responses to the conference's presentations
+        and posters, starting from the 66 abstracts. The series is inspired by
+        <a href={posterUrl}>a poster</a> I am presenting about grades as
+        communication; the essays are written without AI assistance.
+      </p>
+    </header>
+
+    <section class="intro-grid" aria-label="Series notes">
+      <div>
+        <h2>Premise</h2>
+        <p>
+          Grading debates often circle around pedagogy, fairness, motivation,
+          and measurement. I am more interested in the underlying design
+          problem: what grades are trying to communicate, what the institution
+          demands of them, and whether those demands can be rearranged.
         </p>
-      </header>
+      </div>
+      <div>
+        <h2>Index</h2>
+        <ol class="essay-index">
+          {
+            essays.map((essay) => (
+              <li>
+                <a href={`/grading-conf-26/${essay.slug}`}>
+                  {essay.abstractTitle}
+                </a>
+                <span>{essay.author}</span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
 
-      <section class="intro-grid" aria-label="Series notes">
-        <div>
-          <h2>Premise</h2>
-          <p>
-            Grading debates often circle around pedagogy, fairness, motivation,
-            and measurement. I am more interested in the underlying design
-            problem: what grades are trying to communicate, what the institution
-            demands of them, and whether those demands can be rearranged.
-          </p>
-        </div>
-        <div>
-          <h2>Index</h2>
-          <ol class="essay-index">
-            {
-              essays.map((essay) => (
-                <li>
-                  <a href={`#${essay.slug}`}>{essay.abstractTitle}</a>
-                  <span>{essay.author}</span>
-                </li>
-              ))
-            }
-          </ol>
-        </div>
-      </section>
-
-      <section class="essays" aria-label="Essays">
-        {
-          essays.map((essay) => (
-            <article id={essay.slug} class="essay">
-              <header>
-                <p class="essay-number">#{essay.number}</p>
-                <h2>{essay.abstractTitle}</h2>
-                <p class="byline">Responding to {essay.author}</p>
-              </header>
-              <div class="essay-body">
-                {essay.essay.map((paragraph) => (
-                  <p>{paragraph}</p>
-                ))}
-              </div>
-            </article>
-          ))
-        }
-      </section>
-    </main>
-  </body>
-</html>
-
-<style>
-  :global(html) {
-    background: #f8f7f2;
-    color: #1e1f1c;
-    font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui,
-      sans-serif;
-    scroll-behavior: smooth;
-  }
-
-  :global(body) {
-    margin: 0;
-    background:
-      linear-gradient(90deg, rgba(14, 70, 69, 0.11) 1px, transparent 1px),
-      linear-gradient(180deg, rgba(14, 70, 69, 0.08) 1px, transparent 1px),
-      #f8f7f2;
-    background-size: 44px 44px;
-  }
-
-  :global(*) {
-    box-sizing: border-box;
-  }
-
-  .page-shell {
-    margin: 0 auto;
-    max-width: 1120px;
-    padding: 64px 24px 96px;
-  }
-
-  .hero {
-    border-bottom: 2px solid #1e1f1c;
-    padding: 32px 0 44px;
-  }
-
-  .kicker,
-  .essay-number,
-  .byline,
-  .essay-index span {
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .kicker,
-  .essay-number {
-    color: #0d6b66;
-  }
-
-  h1,
-  h2 {
-    font-family: "EB Garamond", Georgia, serif;
-    font-weight: 600;
-    letter-spacing: 0;
-  }
-
-  h1 {
-    font-size: clamp(3.5rem, 8vw, 8.25rem);
-    line-height: 0.88;
-    margin: 12px 0 28px;
-    max-width: 900px;
-  }
-
-  .dek {
-    font-size: clamp(1.1rem, 2vw, 1.45rem);
-    line-height: 1.55;
-    margin: 0;
-    max-width: 760px;
-  }
-
-  a {
-    color: #0d6b66;
-    text-decoration-thickness: 0.09em;
-    text-underline-offset: 0.17em;
-  }
-
-  a:hover {
-    color: #8f2f23;
-  }
-
-  .intro-grid {
-    display: grid;
-    gap: 40px;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
-    padding: 44px 0 32px;
-  }
-
-  .intro-grid h2 {
-    font-size: 2rem;
-    line-height: 1;
-    margin: 0 0 12px;
-  }
-
-  .intro-grid p {
-    font-size: 1.02rem;
-    line-height: 1.65;
-    margin: 0;
-    max-width: 64ch;
-  }
-
-  .essay-index {
-    border-top: 1px solid rgba(30, 31, 28, 0.28);
-    list-style: decimal-leading-zero;
-    margin: 0;
-    padding: 0 0 0 2.2rem;
-  }
-
-  .essay-index li {
-    border-bottom: 1px solid rgba(30, 31, 28, 0.28);
-    padding: 14px 0 16px 8px;
-  }
-
-  .essay-index a {
-    color: #1e1f1c;
-    display: block;
-    font-family: "EB Garamond", Georgia, serif;
-    font-size: 1.22rem;
-    font-weight: 600;
-    line-height: 1.12;
-    text-decoration-color: transparent;
-  }
-
-  .essay-index a:hover {
-    color: #8f2f23;
-    text-decoration-color: currentColor;
-  }
-
-  .essay-index span {
-    color: #5d625d;
-    display: block;
-    margin-top: 6px;
-  }
-
-  .essays {
-    display: grid;
-    gap: 64px;
-    margin-top: 56px;
-  }
-
-  .essay {
-    background: rgba(255, 255, 255, 0.55);
-    border-top: 2px solid #1e1f1c;
-    display: grid;
-    gap: 42px;
-    grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
-    padding: 32px 0 0;
-  }
-
-  .essay header {
-    padding-right: 24px;
-  }
-
-  .essay h2 {
-    font-size: clamp(2rem, 4vw, 3.8rem);
-    line-height: 0.98;
-    margin: 10px 0 18px;
-  }
-
-  .byline {
-    color: #5d625d;
-    line-height: 1.35;
-    margin: 0;
-  }
-
-  .essay-body {
-    border-left: 1px solid rgba(30, 31, 28, 0.28);
-    padding-left: 42px;
-  }
-
-  .essay-body p {
-    font-family: "EB Garamond", Georgia, serif;
-    font-size: clamp(1.23rem, 2vw, 1.45rem);
-    line-height: 1.58;
-    margin: 0 0 1.1em;
-    max-width: 68ch;
-  }
-
-  .essay-body p:first-child::first-letter {
-    color: #8f2f23;
-    float: left;
-    font-size: 4.6em;
-    line-height: 0.78;
-    padding: 0.08em 0.08em 0 0;
-  }
-
-  @media (max-width: 760px) {
-    .page-shell {
-      padding: 36px 18px 72px;
-    }
-
-    .hero {
-      padding-top: 18px;
-    }
-
-    h1 {
-      font-size: clamp(3.05rem, 16vw, 5.4rem);
-    }
-
-    .intro-grid,
-    .essay {
-      grid-template-columns: 1fr;
-    }
-
-    .essay {
-      gap: 18px;
-      padding-top: 24px;
-    }
-
-    .essay header {
-      padding-right: 0;
-    }
-
-    .essay-body {
-      border-left: 0;
-      padding-left: 0;
-    }
-  }
-</style>
+    <section class="essays" aria-label="Essays">
+      {
+        essays.map((essay) => (
+          <article class="essay-card">
+            <p class="essay-number">#{essay.number}</p>
+            <div>
+              <p class="inspired-by">Inspired by</p>
+              <h2>
+                <a href={`/grading-conf-26/${essay.slug}`}>
+                  {essay.abstractTitle}
+                </a>
+              </h2>
+              <p class="byline">{essay.author}</p>
+            </div>
+          </article>
+        ))
+      }
+    </section>
+  </main>
+</GradingConferenceLayout>
