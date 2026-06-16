@@ -5,7 +5,7 @@ export const essays = [
   {
     number: 1,
     abstractTitle:
-      "Beyond Detection: Bernard Stiegler's Authentic Thinking as a Framework for Grading in the Age of AI",
+      "Beyond Detection: Authentic Thinking as a Framework for Grading in the Age of AI",
     author: "Trent Kays",
     slug: "beyond-detection",
     abstract: [
