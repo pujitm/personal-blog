@@ -24,15 +24,17 @@ const description = `Essay inspired by ${essay.author}'s abstract at The Grading
         <p class="byline">{essay.author}</p>
       </header>
 
-      <details class="abstract-panel">
-        <summary>Original abstract</summary>
-        <div class="abstract-copy">
-          {essay.abstract.map((paragraph) => <p>{paragraph}</p>)}
-        </div>
-      </details>
+      <div class="reading-panel">
+        <details class="abstract-panel">
+          <summary>Original abstract</summary>
+          <div class="abstract-copy">
+            {essay.abstract.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+        </details>
 
-      <div class="essay-body">
-        {essay.essay.map((paragraph) => <p>{paragraph}</p>)}
+        <div class="essay-body">
+          {essay.essay.map((paragraph) => <p>{paragraph}</p>)}
+        </div>
       </div>
     </article>
 
