@@ -247,6 +247,32 @@ const { title, description, bodyClass = "" } = Astro.props;
     max-width: 780px;
   }
 
+  .essay-body h2,
+  .essay-body h3 {
+    color: #1e1f1c;
+    max-width: 68ch;
+  }
+
+  .essay-body h2 {
+    border-top: 2px solid rgba(30, 31, 28, 0.82);
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    line-height: 0.98;
+    margin: 2.1em 0 0.5em;
+    padding-top: 0.38em;
+  }
+
+  .essay-body h3 {
+    color: #0d6b66;
+    font-family: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui,
+      sans-serif;
+    font-size: clamp(0.95rem, 1.4vw, 1.08rem);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.25;
+    margin: 2em 0 0.65em;
+    text-transform: uppercase;
+  }
+
   .essay-body p {
     font-family: "EB Garamond", Georgia, serif;
     font-size: clamp(1.23rem, 2vw, 1.45rem);
