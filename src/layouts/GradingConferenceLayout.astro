@@ -273,6 +273,35 @@ const { title, description, bodyClass = "" } = Astro.props;
     text-transform: uppercase;
   }
 
+  .essay-body hr {
+    border: 0;
+    height: 1px;
+    margin: 3.2rem auto;
+    max-width: min(18rem, 58%);
+    overflow: visible;
+    position: relative;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(30, 31, 28, 0.42),
+      transparent
+    );
+  }
+
+  .essay-body hr::after {
+    background: #fffef9;
+    color: #8f2f23;
+    content: "§";
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: 1.15rem;
+    left: 50%;
+    line-height: 1;
+    padding: 0 0.5rem;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+
   .essay-body p {
     font-family: "EB Garamond", Georgia, serif;
     font-size: clamp(1.23rem, 2vw, 1.45rem);
