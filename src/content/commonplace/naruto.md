@@ -7,4 +7,9 @@ images:
     fallback: https://upload.wikimedia.org/wikipedia/en/9/94/NarutoCoverTankobon1.jpg
     alt: Itachi poking Sasuke's forehead with two fingers.
     focus: 50% 40%
+  - src: https://raw.githubusercontent.com/vikhyatsingh123/Naruto-Shippuden/a923c0c065a47593ed36c686e8d5279aa7738f40/Images/naruto.png
+    fallback: https://static.wikia.nocookie.net/naruto/images/3/36/Naruto_Uzumaki.png/revision/latest
+    alt: Naruto, in Shippuden, grinning as he holds up a leaf he has just cut in two with wind chakra.
+    credit: © Masashi Kishimoto / Studio Pierrot
+    focus: 50% 25%
 ---
