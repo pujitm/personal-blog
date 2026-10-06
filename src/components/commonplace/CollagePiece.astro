@@ -1,0 +1,102 @@
+---
+// One thing on the collage. It's drawn twice: once in the cool base layer,
+// where it's a real link (or a playable score), and once in the warm copy cut
+// to the Hidden Leaf, where it's only paint.
+import Incipit from "./Incipit.astro";
+import { formatDate, tracksFor, type Laid } from "../../lib/commonplace";
+import { imageUrl } from "../../lib/images";
+
+export interface Props {
+    laid: Laid;
+    style: string;
+    live: boolean;
+}
+
+const { laid, style, live } = Astro.props;
+const { item, form } = laid;
+const images = item.images.map((image) => ({
+    ...image,
+    src: imageUrl(image.src),
+    fallback: image.fallback && imageUrl(image.fallback),
+}));
+const music = item.music;
+const first = music?.movements[0];
+const tracks = live && music ? tracksFor(item.id, music) : undefined;
+const Root = live && !music ? "a" : "div";
+const linkProps =
+    live && !music
+        ? {
+              href: item.href,
+              target: item.external ? "_blank" : undefined,
+              rel: item.external ? "noopener" : undefined,
+              "aria-label": `${item.title}${item.subtitle ? `, ${item.subtitle}` : ""}`,
+          }
+        : {};
+---
+
+<Root
+    class="cp"
+    data-form={music ? "music" : form}
+    data-kind={item.kind}
+    data-id={item.id}
+    data-title={item.title}
+    data-alpha={laid.alpha ? "" : undefined}
+    style={style}
+    {...linkProps}
+>
+    {
+        music && first ? (
+            <div class="cp__body music">
+                <span class="music__label">
+                    {music.composer.split(" ").at(-1)} · {item.title}
+                    <em>{music.performer.split(" · ")[0]}</em>
+                </span>
+                <Incipit
+                    abc={first.incipit}
+                    label={`${music.work}, played by ${music.performer}`}
+                    marking={`${first.title} · ${music.key}`}
+                    tracks={tracks}
+                    piece={live ? item.id : undefined}
+                />
+            </div>
+        ) : form === "wide" ? (
+            <span class="cp__body film">
+                {images.slice(0, 3).map((image) => (
+                    <img src={image.src} alt="" decoding="async" />
+                ))}
+            </span>
+        ) : form === "cover" ? (
+            <span class="cp__body cover">
+                <span class="cover__title">{item.title}</span>
+                <span class="cover__author">{item.subtitle}</span>
+            </span>
+        ) : form === "card" ? (
+            <span class="cp__body card">
+                <span class="card__meta">{item.date && formatDate(item.date)}</span>
+                <span class="card__title">{item.title}</span>
+                {item.description && <span class="card__desc">{item.description}</span>}
+            </span>
+        ) : form === "square" ? (
+            <span class="cp__body sticky">
+                <span class="sticky__title">{item.title}</span>
+                <span class="sticky__meta">{item.date && formatDate(item.date)}</span>
+            </span>
+        ) : (
+            <span class="cp__body photo">
+                <span class="photo__frames">
+                    {images.slice(0, 2).map((image) => (
+                        <img
+                            src={image.src}
+                            data-fallback={image.fallback}
+                            alt=""
+                            decoding="async"
+                            style={image.focus && `object-position:${image.focus}`}
+                            onerror="window.commonplaceImageError?.(this)"
+                        />
+                    ))}
+                </span>
+                <span class="photo__title">{item.title}</span>
+            </span>
+        )
+    }
+</Root>

@@ -1,751 +1,254 @@
 ---
-// The collage. Pieces on the Hidden Leaf's stroke are warm, the rest neutral,
-// so the symbol emerges from far away and dissolves into things up close.
-// Scrolling zooms in at the tip of the leaf and travels down and around the
-// spiral, then pulls back out. Hover a piece to lift it and see its real
-// colors; click to open it (or, for sheet music, to hear it).
-import Incipit from "./Incipit.astro";
-import { KIND_LABELS, formatDate, tracksFor, type Laid } from "../../lib/commonplace";
-import { imageUrl } from "../../lib/images";
-import { cameraRoute, layout, rng } from "../../lib/leaf";
-import { NEUTRAL, NEUTRAL_COVERS, TYPE_SCRAPS, WARM } from "../../data/collage";
+// The collage. It starts scattered, with the Hidden Leaf cut through it:
+// everything inside the symbol is warm, everything outside cool, so the shape
+// slices across whatever lies on its edge. Scrolling breaks the spell: pieces
+// straighten up, settle into a board grouped by kind, and show their true
+// colors. Hover anything to lift it; click to open it or hear it.
+import CollagePiece from "./CollagePiece.astro";
+import { type Laid } from "../../lib/commonplace";
+import { board, insigniaMask, rng, scatter } from "../../lib/leaf";
+import { COOL, FEATURED, TYPE_SCRAPS, WARM } from "../../data/collage";
+import "../../styles/collage.css";
 
 export interface Props {
-    leaf: Laid[];
-    ground: Laid[];
+    /** Everything, in the order the board settles into. */
+    items: Laid[];
 }
 
-const { leaf, ground } = Astro.props;
-const laid = layout(leaf, ground).sort((a, b) => a.place.z - b.place.z);
+const { items } = Astro.props;
+const { things, scraps } = scatter(items.map((laid) => ({ ...laid, featured: FEATURED.includes(laid.item.id) })));
+const at = new Map(things.map(({ thing, at }) => [thing.item.id, at]));
+const sizes = items.map((laid) => {
+    const a = at.get(laid.item.id)!;
+    return { w: a.w, h: a.h, wide: laid.form === "wide" };
+});
+const desk = board(sizes, 6, 16);
+const phone = board(sizes, 2, 24);
+const mask = insigniaMask();
 
-const pick = <T,>(list: T[], r: () => number) => list[Math.floor(r() * list.length)];
-
-/** A ragged outline: corners and edges nudged in a little, like torn paper. */
-function torn(r: () => number, roughness: number) {
-    const points: string[] = [];
-    const edge = (from: [number, number], to: [number, number], steps: number, inward: [number, number]) => {
-        for (let i = 0; i < steps; i++) {
-            const t = i / steps;
-            const bite = r() * roughness;
-            points.push(
-                `${(from[0] + (to[0] - from[0]) * t + inward[0] * bite).toFixed(1)}% ${(from[1] + (to[1] - from[1]) * t + inward[1] * bite).toFixed(1)}%`,
-            );
-        }
-    };
-    edge([0, 0], [100, 0], 9, [0, 1]);
-    edge([100, 0], [100, 100], 5, [-1, 0]);
-    edge([100, 100], [0, 100], 9, [0, -1]);
-    edge([0, 100], [0, 0], 5, [1, 0]);
-    return `polygon(${points.join(",")})`;
-}
-
-const inkFor = (hex: string) => {
+const ink = (hex: string) => {
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
     return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55 ? "#1c1a17" : "#f7f2e8";
 };
+const pick = <T,>(list: T[], r: () => number) => list[Math.floor(r() * list.length)];
+const TRUE_PAPER: Record<string, string> = {
+    music: "#f7f1e1",
+    card: "#fdfcf8",
+    square: "#f6e27a",
+    image: "#fbfaf5",
+    wide: "#1a1411",
+};
 
-const pieces = laid.map(({ item: laidItem, form, place }) => {
-    const r = rng(place.seed);
-    const onLeaf = place.zone === "leaf";
-    const paper = onLeaf ? pick(WARM, r) : pick(NEUTRAL, r);
-    const style = [
-        `left:${(place.x - place.w / 2).toFixed(1)}px`,
-        `top:${(place.y - place.h / 2).toFixed(1)}px`,
-        `width:${place.w.toFixed(1)}px`,
-        `height:${place.h.toFixed(1)}px`,
-        `--rot:${place.rot.toFixed(1)}deg`,
-        `--size:${Math.max(place.w, place.h).toFixed(0)}`,
-        `--paper:${paper}`,
-        `--paper-ink:${inkFor(paper)}`,
-        `z-index:${place.z}`,
-    ].join(";");
-
-    if (!laidItem) {
-        // Decoration: glued paper, no shadow.
-        const kinds = onLeaf
-            ? ["paper", "paper", "paper", "dots", "stripes"]
-            : ["paper", "paper", "paper", "paper", "paper", "paper", "news", "graph", "type", "staff", "paper", "dark"];
-        const kind = pick(kinds, r);
-        return {
-            scrap: true as const,
-            kind,
-            style: `${style};clip-path:${torn(r, kind === "type" ? 3 : 6)}`,
-            word: kind === "type" ? pick(TYPE_SCRAPS, r) : undefined,
-            zone: place.zone,
-        };
-    }
-
-    const item = laidItem.item;
-    const images = item.images.map((image) => ({
-        ...image,
-        src: imageUrl(image.src),
-        fallback: image.fallback && imageUrl(image.fallback),
-    }));
-    const tracks = item.music ? tracksFor(item.id, item.music) : undefined;
-    const cover = onLeaf ? paper : pick(NEUTRAL_COVERS, r);
+const pieces = items.map((laid, i) => {
+    const a = at.get(laid.item.id)!;
+    const d = desk.settled[i];
+    const p = phone.settled[i];
+    const r = rng(i * 7919 + 11);
+    const form = laid.item.music ? "music" : laid.form;
+    const truth = form === "cover" ? laid.item.color ?? "#3b3a36" : TRUE_PAPER[form] ?? "#fbfaf5";
+    const warm = pick(WARM.papers, r);
+    const cool = pick(COOL.papers, r);
+    const vars = {
+        "--x0": a.x.toFixed(1),
+        "--y0": a.y.toFixed(1),
+        "--w": a.w.toFixed(1),
+        "--h": a.h.toFixed(1),
+        "--r0": a.rot.toFixed(1),
+        "--z": a.z,
+        "--dxD": (d.x - a.x).toFixed(1),
+        "--dyD": (d.y - a.y).toFixed(1),
+        "--sD": d.scale.toFixed(3),
+        "--dxM": (p.x - a.x).toFixed(1),
+        "--dyM": (p.y - a.y).toFixed(1),
+        "--sM": p.scale.toFixed(3),
+        // Things near the top of the board settle first, like pages landing.
+        "--delayD": ((d.y / desk.height) * 0.5 + r() * 0.06).toFixed(3),
+        "--delayM": ((p.y / phone.height) * 0.5 + r() * 0.06).toFixed(3),
+        "--true": truth,
+        "--true-ink": ink(truth),
+        "--warm": warm,
+        "--warm-ink": ink(warm),
+        "--cool": cool,
+        "--cool-ink": ink(cool),
+        "--tw": `${pick(WARM.tints, r)}deg`,
+        "--tc": `${pick(COOL.tints, r)}deg`,
+    };
     return {
-        scrap: false as const,
-        item,
-        form,
-        alpha: laidItem.alpha,
-        images,
-        tracks,
-        zone: place.zone,
-        style: `${style};--cover:${cover};--cover-ink:${inkFor(cover)}`,
-        cut: form === "image" && !laidItem.alpha && r() < 0.5 ? torn(r, 2.2) : undefined,
-        label: KIND_LABELS[item.kind],
+        laid,
+        style: Object.entries(vars)
+            .map(([k, v]) => `${k}:${v}`)
+            .join(";"),
     };
 });
 
-const route = cameraRoute(80);
+const paperScraps = scraps.map((s, i) => {
+    const r = rng(i * 104729 + 3);
+    const kind = pick(["paper", "paper", "paper", "paper", "news", "graph", "dots", "type", "paper"], r);
+    const warm = pick(WARM.papers, r);
+    const cool = pick(COOL.papers, r);
+    const corners = Array.from({ length: 4 }, () => (r() * 7).toFixed(1));
+    return {
+        kind,
+        word: kind === "type" ? pick(TYPE_SCRAPS, r) : undefined,
+        style: [
+            `--x0:${s.x.toFixed(1)}`,
+            `--y0:${s.y.toFixed(1)}`,
+            `--w:${s.w.toFixed(1)}`,
+            `--h:${s.h.toFixed(1)}`,
+            `--r0:${s.rot.toFixed(1)}`,
+            `--z:${s.z}`,
+            `--fall:${(0.4 + r() * 0.6).toFixed(2)}`,
+            `--warm:${warm}`,
+            `--warm-ink:${ink(warm)}`,
+            `--cool:${cool}`,
+            `--cool-ink:${ink(cool)}`,
+            `clip-path:polygon(${corners[0]}% ${corners[1]}%, ${100 - +corners[2]}% 0, 100% ${100 - +corners[3]}%, ${corners[2]}% 100%)`,
+        ].join(";"),
+    };
+});
 ---
 
-<section class="leaf" aria-label="Commonplace book, arranged as the Hidden Leaf" data-route={JSON.stringify(route)}>
+<section
+    class="leaf"
+    aria-label="Commonplace book"
+    data-desk-height={desk.height.toFixed(0)}
+    data-phone-height={phone.height.toFixed(0)}
+>
     <div class="leaf__stage">
         <div class="leaf__world">
-            {
-                pieces.map((piece) =>
-                    piece.scrap ? (
-                        <span class="scrap" data-kind={piece.kind} data-zone={piece.zone} style={piece.style} aria-hidden="true">
-                            {piece.word && <span class="scrap__word">{piece.word}</span>}
+            <div class="leaf__layer leaf__layer--cool">
+                {
+                    paperScraps.map((scrap) => (
+                        <span class="cs" data-kind={scrap.kind} style={scrap.style} aria-hidden="true">
+                            {scrap.word && <span class="cs__word">{scrap.word}</span>}
                         </span>
-                    ) : piece.item.music && piece.tracks ? (
-                        <div class="piece" data-form="music" data-zone={piece.zone} style={piece.style}>
-                            <div class="piece__body music">
-                                <span class="music__label">
-                                    {piece.item.music.composer.split(" ").at(-1)} · {piece.item.title}
-                                </span>
-                                <Incipit
-                                    abc={piece.item.music.movements[0].incipit}
-                                    label={`${piece.item.music.work}, played by ${piece.item.music.performer}`}
-                                    marking={`${piece.item.music.movements[0].title} · ${piece.item.music.key}`}
-                                    tracks={piece.tracks}
-                                    piece={piece.item.id}
-                                />
-                            </div>
-                            <span class="piece__tag" aria-hidden="true">▶ {piece.item.title} · {piece.item.music.performer.split(" · ")[0]}</span>
-                        </div>
-                    ) : (
-                        <a
-                            class="piece"
-                            data-form={piece.form}
-                            data-zone={piece.zone}
-                            data-kind={piece.item.kind}
-                            data-alpha={piece.alpha ? "" : undefined}
-                            style={piece.style}
-                            href={piece.item.href}
-                            target={piece.item.external ? "_blank" : undefined}
-                            rel={piece.item.external ? "noopener" : undefined}
-                            aria-label={`${piece.item.title}${piece.item.subtitle ? `, ${piece.item.subtitle}` : ""}`}
-                        >
-                            {piece.form === "image" && (
-                                <span class="piece__body photo" style={piece.cut && `clip-path:${piece.cut}`}>
-                                    <img
-                                        src={piece.images[0]?.src}
-                                        data-fallback={piece.images[0]?.fallback}
-                                        alt=""
-                                        loading="lazy"
-                                        decoding="async"
-                                        style={piece.images[0]?.focus && `object-position:${piece.images[0].focus}`}
-                                        onerror="window.commonplaceImageError?.(this)"
-                                    />
-                                    {piece.images[1] && (
-                                        <img
-                                            src={piece.images[1].src}
-                                            data-fallback={piece.images[1].fallback}
-                                            alt=""
-                                            loading="lazy"
-                                            decoding="async"
-                                            onerror="window.commonplaceImageError?.(this)"
-                                        />
-                                    )}
-                                    <span class="photo__title">{piece.item.title}</span>
-                                </span>
-                            )}
-                            {piece.form === "wide" && (
-                                <span class="piece__body film">
-                                    {piece.images.slice(0, 3).map((image) => (
-                                        <img src={image.src} alt="" loading="lazy" decoding="async" />
-                                    ))}
-                                </span>
-                            )}
-                            {piece.form === "spine" && (
-                                <span class="piece__body spine">
-                                    <span class="spine__title">{piece.item.title}</span>
-                                    <span class="spine__author">{piece.item.subtitle}</span>
-                                </span>
-                            )}
-                            {piece.form === "cover" && (
-                                <span class="piece__body cover">
-                                    <span class="cover__title">{piece.item.title}</span>
-                                    <span class="cover__author">{piece.item.subtitle}</span>
-                                </span>
-                            )}
-                            {piece.form === "card" && (
-                                <span class="piece__body card">
-                                    <span class="card__meta">{piece.item.date && formatDate(piece.item.date)}</span>
-                                    <span class="card__title">{piece.item.title}</span>
-                                </span>
-                            )}
-                            {piece.form === "square" && (
-                                <span class="piece__body sticky">
-                                    <span class="sticky__title">{piece.item.title}</span>
-                                    <span class="sticky__meta">{piece.item.date && formatDate(piece.item.date)}</span>
-                                </span>
-                            )}
-                            <span class="piece__tag" aria-hidden="true">
-                                {piece.label} · {piece.item.title}
+                    ))
+                }
+                {pieces.map((piece) => <CollagePiece laid={piece.laid} style={piece.style} live />)}
+            </div>
+            {
+                mask && (
+                    <div class="leaf__layer leaf__layer--warm" style={`--mask:${mask}`} aria-hidden="true">
+                        <span class="leaf__fill" />
+                        {paperScraps.map((scrap) => (
+                            <span class="cs" data-kind={scrap.kind} style={scrap.style}>
+                                {scrap.word && <span class="cs__word">{scrap.word}</span>}
                             </span>
-                        </a>
-                    ),
+                        ))}
+                        {pieces.map((piece) => (
+                            <CollagePiece laid={piece.laid} style={piece.style} live={false} />
+                        ))}
+                    </div>
                 )
             }
+            <div class="leaf__layer leaf__layer--lift" aria-hidden="true"></div>
         </div>
-        <p class="leaf__hint" aria-hidden="true">scroll to look closer</p>
+        <p class="leaf__hint" aria-hidden="true">scroll, and it all falls into place</p>
     </div>
 </section>
 
-<style>
-    .leaf {
-        position: relative;
-        height: 560vh;
-    }
-
-    .leaf__stage {
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        height: 100svh;
-        overflow: hidden;
-    }
-
-    .leaf__world {
-        --zoom: 0.8;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 1000px;
-        height: 1000px;
-        transform-origin: 0 0;
-        transform: scale(0.8);
-    }
-
-    .leaf__hint {
-        position: absolute;
-        left: 50%;
-        bottom: 1.25rem;
-        translate: -50% 0;
-        margin: 0;
-        font-family: var(--font-hand);
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--ink-2);
-        opacity: calc(1 - var(--progress, 0) * 10);
-        pointer-events: none;
-    }
-
-    .leaf__hint::after {
-        content: " ↓";
-        font-family: var(--font-serif);
-    }
-
-    /* ---- every piece */
-
-    .piece,
-    .scrap {
-        position: absolute;
-        box-sizing: border-box;
-        rotate: var(--rot);
-    }
-
-    .piece {
-        display: block;
-        color: #1c1a17;
-        text-decoration: none;
-        transition:
-            scale 0.3s cubic-bezier(0.2, 0.7, 0.2, 1),
-            rotate 0.3s ease;
-    }
-
-    .piece *,
-    .scrap * {
-        box-sizing: border-box;
-    }
-
-    .piece__body {
-        container-type: size;
-        position: relative;
-        display: block;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        box-shadow:
-            0 0.5px 1px rgb(40 20 5 / 0.25),
-            0 4px 7px -4px rgb(40 20 5 / 0.45);
-    }
-
-    /* Hover lifts a piece to a readable size and shows its true colors. */
-    .piece:hover,
-    .piece:focus-visible,
-    .piece:focus-within {
-        z-index: 1000 !important;
-        scale: clamp(1.15, calc(250 / (var(--size) * var(--zoom))), 3.2);
-        rotate: calc(var(--rot) * 0.25);
-        outline: none;
-    }
-
-    .piece:focus-visible .piece__body {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
-    }
-
-    .piece__tag {
-        position: absolute;
-        left: 50%;
-        bottom: calc(100% + 4px);
-        translate: -50% 0;
-        padding: 2px 5px;
-        border-radius: 1px;
-        background: #1c1a17;
-        color: #f4efe4;
-        font: 500 6px/1.2 var(--font-mono);
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        opacity: 0;
-        transition: opacity 0.15s ease;
-        pointer-events: none;
-    }
-
-    .piece:hover .piece__tag,
-    .piece:focus-visible .piece__tag,
-    .piece:focus-within .piece__tag {
-        opacity: 1;
-    }
-
-    /* ---- the color that makes the leaf */
-
-    .piece[data-zone="leaf"] img {
-        filter: grayscale(1) sepia(1) saturate(4.6) hue-rotate(-24deg) contrast(1.08) brightness(0.98);
-    }
-
-    .piece[data-zone="ground"] img {
-        filter: grayscale(1) contrast(0.92) brightness(1.08);
-        opacity: 0.92;
-    }
-
-    .piece img {
-        transition: filter 0.3s ease, opacity 0.3s ease;
-    }
-
-    .piece:hover img,
-    .piece:focus-visible img {
-        filter: none;
-        opacity: 1;
-    }
-
-    /* ---- photos */
-
-    .photo {
-        display: flex;
-        gap: 2px;
-        background: var(--paper);
-    }
-
-    .photo img {
-        flex: 1;
-        min-width: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* Transparent images are cut-outs: no paper behind, a shadow that follows them. */
-    .piece[data-alpha] .piece__body {
-        background: none;
-        box-shadow: none;
-        overflow: visible;
-    }
-
-    .piece[data-alpha] .photo img {
-        object-fit: contain;
-    }
-
-    .piece[data-alpha]:not(:hover) .photo img {
-        filter: grayscale(1) contrast(0.92) brightness(1.08) drop-shadow(0 3px 3px rgb(40 20 5 / 0.35));
-    }
-
-    .piece[data-alpha][data-zone="leaf"]:not(:hover) .photo img {
-        filter: grayscale(1) sepia(1) saturate(4.6) hue-rotate(-24deg) contrast(1.08) drop-shadow(0 3px 3px rgb(40 20 5 / 0.35));
-    }
-
-    .piece[data-alpha]:hover .photo img {
-        filter: drop-shadow(0 4px 4px rgb(40 20 5 / 0.35));
-    }
-
-    .photo__title {
-        display: none;
-    }
-
-    .photo.is-empty {
-        display: flex;
-        align-items: flex-end;
-        padding: 8%;
-    }
-
-    .photo.is-empty .photo__title {
-        display: block;
-        font-size: 18cqmin;
-        line-height: 1;
-        color: var(--paper-ink);
-    }
-
-    /* ---- sheet music, torn from the score */
-
-    .music {
-        display: grid;
-        grid-template-rows: auto 1fr;
-        padding: 4% 4% 2.5%;
-        background:
-            linear-gradient(180deg, rgb(255 255 255 / 0.12), transparent 40%),
-            var(--paper);
-        color: #26120b;
-    }
-
-    .piece[data-zone="ground"] .music {
-        color: #1c1a17;
-    }
-
-    .music__label {
-        font: 600 4.6px/1.2 var(--font-mono);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        overflow: hidden;
-        opacity: 0.85;
-    }
-
-    .music :global(.incipit) {
-        --staff: currentColor;
-        height: 100%;
-        min-height: 0;
-        color: inherit;
-    }
-
-    .music :global(.incipit__score),
-    .music :global(.abcjs-container) {
-        height: 100%;
-    }
-
-    .music :global(.abcjs-container) {
-        padding-bottom: 0 !important;
-    }
-
-    .music :global(.incipit__score svg) {
-        width: 100%;
-        height: 100%;
-    }
-
-    .music :global(.incipit svg path),
-    .music :global(.incipit svg text) {
-        fill: currentColor;
-    }
-
-    .music :global(.incipit svg .abcjs-staff),
-    .music :global(.incipit svg .abcjs-staff path) {
-        fill: currentColor;
-        opacity: 0.55;
-    }
-
-    .music :global(.incipit__marking) {
-        background: var(--paper);
-        font-size: 7px;
-        left: 2%;
-    }
-
-    .music :global(.incipit[data-empty] .incipit__score) {
-        aspect-ratio: auto;
-        opacity: 0.9;
-        background:
-            repeating-linear-gradient(transparent 0 calc(20% - 0.5px), currentColor calc(20% - 0.5px) 20%) 0 8% / 100% 34% no-repeat,
-            repeating-linear-gradient(transparent 0 calc(20% - 0.5px), currentColor calc(20% - 0.5px) 20%) 0 70% / 100% 34% no-repeat;
-    }
-
-    .music :global(.incipit__cue) {
-        font-size: 5px;
-        padding: 1px 4px;
-    }
-
-    .piece[data-form="music"]:hover .music,
-    .piece[data-form="music"]:focus-within .music {
-        background: #f7f1e1;
-        color: #1c1a17;
-    }
-
-    .piece[data-form="music"]:hover :global(.incipit__marking) {
-        background: #f7f1e1;
-    }
-
-    /* ---- the Ramayana on film */
-
-    .film {
-        display: flex;
-        gap: 3%;
-        padding: 8% 2.5%;
-        background:
-            radial-gradient(circle, var(--paper) 0 38%, transparent 42%) 0 4% / 3% 7% repeat-x,
-            radial-gradient(circle, var(--paper) 0 38%, transparent 42%) 0 96% / 3% 7% repeat-x,
-            #1a1411;
-    }
-
-    .film img {
-        flex: 1;
-        min-width: 0;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* ---- books */
-
-    .spine {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 4px;
-        padding: 0 6%;
-        border-radius: 1px;
-        background:
-            linear-gradient(rgb(255 255 255 / 0.2), transparent 25%, transparent 75%, rgb(0 0 0 / 0.25)),
-            var(--cover);
-        color: var(--cover-ink);
-    }
-
-    .spine__title {
-        overflow: hidden;
-        font-size: 6px;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-
-    .spine__author {
-        flex: none;
-        font-size: 5px;
-        font-style: italic;
-    }
-
-    .cover {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        padding: 14% 11% 10% 16%;
-        border-radius: 1px 3px 3px 1px;
-        background:
-            linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 4%, rgb(255 255 255 / 0.15) 4% 5%, transparent 8%),
-            var(--cover);
-        color: var(--cover-ink);
-    }
-
-    .cover__title {
-        font-size: 13cqi;
-        font-weight: 500;
-        line-height: 1.05;
-    }
-
-    .cover__author {
-        margin-top: auto;
-        font-size: 8cqi;
-        font-style: italic;
-        opacity: 0.85;
-    }
-
-    /* ---- things I've made */
-
-    .card {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        padding: 8% 8%;
-        background:
-            linear-gradient(#e0786b, #e0786b) 0 26% / 100% 0.6px no-repeat,
-            repeating-linear-gradient(transparent 0 8.5px, rgb(80 120 190 / 0.3) 8.5px 9px) 0 26%,
-            #fdfcf8;
-    }
-
-    .card__meta {
-        font: 500 5px/1.2 var(--font-mono);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #82786a;
-    }
-
-    .card__title {
-        font-size: 11cqi;
-        line-height: 1.12;
-    }
-
-    .sticky {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 11%;
-        background: linear-gradient(170deg, #f2f3ef, #dfe3e1);
-    }
-
-    .sticky__title {
-        font-family: var(--font-hand);
-        font-size: 17cqi;
-        font-weight: 600;
-        line-height: 1;
-    }
-
-    .sticky__meta {
-        font: 500 5px/1 var(--font-mono);
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        opacity: 0.6;
-    }
-
-    .piece[data-form="square"]:hover .sticky {
-        background: linear-gradient(170deg, #fbea8c, #f4d95e);
-    }
-
-    /* ---- scraps: glued paper, so no shadows */
-
-    .scrap {
-        display: block;
-        background: var(--paper);
-        pointer-events: none;
-    }
-
-    .scrap[data-kind="dots"] {
-        background:
-            radial-gradient(circle, rgb(120 20 0 / 0.35) 0 32%, transparent 36%) 0 0 / 6px 6px,
-            var(--paper);
-    }
-
-    .scrap[data-kind="stripes"] {
-        background: repeating-linear-gradient(-45deg, var(--paper) 0 5px, color-mix(in srgb, var(--paper) 78%, #7a1a08) 5px 8px);
-    }
-
-    .scrap[data-kind="dark"] {
-        background: #4a4844;
-    }
-
-    .scrap[data-kind="news"] {
-        background:
-            repeating-linear-gradient(transparent 0 3px, rgb(30 30 30 / 0.28) 3px 4px) 6px 8px / calc(50% - 9px) calc(100% - 14px) no-repeat,
-            repeating-linear-gradient(transparent 0 3px, rgb(30 30 30 / 0.28) 3px 4px) calc(50% + 3px) 8px / calc(50% - 9px) calc(100% - 14px) no-repeat,
-            #ece8de;
-    }
-
-    .scrap[data-kind="graph"] {
-        background:
-            linear-gradient(rgb(70 110 150 / 0.22) 0.5px, transparent 0.5px) 0 0 / 6px 6px,
-            linear-gradient(90deg, rgb(70 110 150 / 0.22) 0.5px, transparent 0.5px) 0 0 / 6px 6px,
-            #f6f5f0;
-    }
-
-    .scrap[data-kind="staff"] {
-        background:
-            repeating-linear-gradient(transparent 0 3.5px, rgb(40 40 40 / 0.4) 3.5px 4px) 0 20% / 100% 18px no-repeat,
-            repeating-linear-gradient(transparent 0 3.5px, rgb(40 40 40 / 0.4) 3.5px 4px) 0 70% / 100% 18px no-repeat,
-            #f3efe4;
-    }
-
-    .scrap[data-kind="type"] {
-        display: grid;
-        place-items: center;
-        background: var(--paper);
-        color: var(--paper-ink);
-    }
-
-    .scrap__word {
-        font-size: 15px;
-        font-style: italic;
-        white-space: nowrap;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .piece[data-zone="ground"] img {
-            opacity: 0.8;
-        }
-    }
-</style>
-
 <script>
-    type Point = { x: number; y: number };
-
-    const smooth = (t: number) => t * t * (3 - 2 * t);
     const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+    const smooth = (t: number) => t * t * (3 - 2 * t);
 
-    function initLeaf() {
+    function initCollage() {
         const leaf = document.querySelector<HTMLElement>(".leaf");
         const stage = leaf?.querySelector<HTMLElement>(".leaf__stage");
         const world = leaf?.querySelector<HTMLElement>(".leaf__world");
-        if (!leaf || !stage || !world) return;
-        const route: Point[] = JSON.parse(leaf.dataset.route!);
-        const along = (u: number): Point => {
-            const f = clamp01(u) * (route.length - 1);
-            const i = Math.min(route.length - 2, Math.floor(f));
-            const t = f - i;
-            return { x: route[i].x + (route[i + 1].x - route[i].x) * t, y: route[i].y + (route[i + 1].y - route[i].y) * t };
+        const lift = leaf?.querySelector<HTMLElement>(".leaf__layer--lift");
+        if (!leaf || !stage || !world || !lift) return;
+        const phone = matchMedia("(max-width: 40rem)");
+        const still = matchMedia("(prefers-reduced-motion: reduce)");
+
+        // Scroll budget: hold on the leaf, let everything settle, then pan the board.
+        let geometry = { vw: 0, vh: 0, hold: 0, settle: 0, pan: 0, chaos: 1, board: 1 };
+        const measure = () => {
+            const vw = stage.clientWidth;
+            const vh = innerHeight;
+            const boardHeight = Number(phone.matches ? leaf.dataset.phoneHeight : leaf.dataset.deskHeight);
+            const chaos = Math.min(vw * 0.94, vh * 0.9) / 1000;
+            const board = Math.max(chaos, Math.min(vw * 0.94, 1320) / 1000);
+            const hold = vh * 0.45;
+            const settle = vh * (still.matches ? 0.6 : 2.4);
+            const pan = Math.max(0, boardHeight * board + 140 - vh);
+            geometry = { vw, vh, hold, settle, pan, chaos, board };
+            leaf.style.height = `${vh + hold + settle + pan + vh * 0.25}px`;
         };
 
         let frame = 0;
         let idle = 0;
         const update = () => {
             frame = 0;
-            const vw = stage.clientWidth;
-            const vh = stage.clientHeight;
-            const scrollable = leaf.offsetHeight - vh;
-            const p = clamp01(-leaf.getBoundingClientRect().top / scrollable);
+            const { vw, vh, hold, settle, pan, chaos, board } = geometry;
+            const s = Math.max(0, -leaf.getBoundingClientRect().top);
+            const order = clamp01((s - hold) / settle);
+            const spell = 1 - smooth(clamp01((s - hold) / (settle * 0.75)));
+            const e = smooth(order);
+            const panned = clamp01((s - hold - settle) / Math.max(1, pan)) * pan;
 
-            // Whole leaf in view, then close enough to read, then whole again.
-            const fit = Math.min((vw * 0.96) / 1080, (vh * 0.92) / 1080);
-            const close = Math.max(fit * 1.8, Math.min(vw, vh) / 400);
-            const zoomIn = smooth(clamp01((p - 0.08) / 0.14));
-            const zoomOut = smooth(clamp01((p - 0.86) / 0.12));
-            const amount = zoomIn * (1 - zoomOut);
-            const scale = fit * (close / fit) ** amount;
+            // From the whole leaf in view to the top of the board, then down it.
+            const scale = chaos * (board / chaos) ** e;
+            const boardTop = vh / 2 / board - 70 / board;
+            const fx = 500;
+            const fy = 500 + (boardTop - 500) * e + panned / board;
 
-            // Travel from the leaf's tip down and around into the spiral.
-            const travel = smooth(clamp01((p - 0.2) / 0.66));
-            const onRoute = along(travel);
-            const middle = { x: 520, y: 520 };
-            const keepIn = (v: number, half: number) =>
-                half * 2 >= 1040 ? 520 : Math.min(1020 - half, Math.max(-20 + half, v));
-            const focus = {
-                // Close up, keep the collage filling the screen.
-                x: keepIn(middle.x + (onRoute.x - middle.x) * amount, vw / 2 / scale),
-                y: keepIn(middle.y + (onRoute.y - middle.y) * amount, vh / 2 / scale),
-            };
+            world.style.transform = `translate(${vw / 2 - fx * scale}px, ${vh / 2 - fy * scale}px) scale(${scale})`;
+            world.style.setProperty("--order", order.toFixed(4));
+            world.style.setProperty("--spell", spell.toFixed(4));
+            leaf.style.setProperty("--progress", order.toFixed(3));
 
-            world.style.transform = `translate(${vw / 2 - focus.x * scale}px, ${vh / 2 - focus.y * scale}px) scale(${scale})`;
-            world.style.setProperty("--zoom", scale.toFixed(3));
-            leaf.style.setProperty("--progress", p.toFixed(3));
-
-            // Composite while moving; re-raster sharp once still.
             world.style.willChange = "transform";
             clearTimeout(idle);
-            idle = window.setTimeout(() => (world.style.willChange = "auto"), 180);
+            idle = window.setTimeout(() => (world.style.willChange = "auto"), 200);
         };
         const schedule = () => (frame ||= requestAnimationFrame(update));
+        const resize = () => {
+            measure();
+            schedule();
+        };
+        measure();
         update();
         addEventListener("scroll", schedule, { passive: true });
-        addEventListener("resize", schedule);
+        addEventListener("resize", resize);
+        phone.addEventListener("change", resize);
+
+        // Hover lifts a copy of the piece above both layers, in true colors.
+        let lifted: HTMLElement | null = null;
+        const raise = (piece: HTMLElement | null) => {
+            if (lifted && lifted.dataset.id === piece?.dataset.id) return;
+            lift.replaceChildren();
+            lifted = null;
+            if (!piece) return;
+            const copy = piece.cloneNode(true) as HTMLElement;
+            copy.removeAttribute("href");
+            copy.querySelectorAll("button, a").forEach((el) => el.setAttribute("tabindex", "-1"));
+            const box = piece.getBoundingClientRect();
+            copy.style.setProperty("--lift", Math.min(2.4, Math.max(1.1, 300 / Math.max(box.width, box.height))).toFixed(3));
+            copy.classList.add("cp--lifted");
+            lift.append(copy);
+            lifted = copy;
+        };
+        const cool = leaf.querySelector<HTMLElement>(".leaf__layer--cool")!;
+        if (matchMedia("(hover: hover)").matches) {
+            cool.addEventListener("pointerover", (event) =>
+                raise((event.target as HTMLElement).closest<HTMLElement>(".cp")),
+            );
+            cool.addEventListener("pointerleave", () => raise(null));
+        }
+        cool.addEventListener("focusin", (event) => raise((event.target as HTMLElement).closest<HTMLElement>(".cp")));
+        cool.addEventListener("focusout", () => raise(null));
+
         document.addEventListener(
             "astro:before-swap",
             () => {
                 cancelAnimationFrame(frame);
                 removeEventListener("scroll", schedule);
-                removeEventListener("resize", schedule);
+                removeEventListener("resize", resize);
+                phone.removeEventListener("change", resize);
             },
             { once: true },
         );
     }
 
-    document.addEventListener("astro:page-load", initLeaf);
+    document.addEventListener("astro:page-load", initCollage);
 </script>

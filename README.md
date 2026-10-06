@@ -4,17 +4,19 @@ using astro because the logo and cli are cool.
 
 ## Commonplace book
 
-The homepage opens on Einstein and a hello, then a collage. Nothing draws the
-Hidden Leaf: pieces laid along its stroke are warm vermilion and orange, the
-rest is neutral ground, so the symbol emerges from far away. Scrolling zooms
-in at the leaf's tip and travels around the spiral; hovering a piece lifts it
-and shows its real colors.
+The homepage opens on Einstein and a hello, then a collage. It starts
+scattered, with the Hidden Leaf cut through it: inside the symbol every piece
+is warm, outside cool, so the shape slices across whatever lies on its edge.
+Scrolling breaks the spell: pieces straighten, settle into a board grouped by
+kind, and show their true colors. Hover to lift a piece; click to open it or
+hear it.
 
 - Each entry is a markdown file in `src/content/commonplace/`; anything written
   below the frontmatter shows on its page at `/commonplace/<file-name>`. The
   schema, with comments, is in `src/content.config.ts`.
-- Which things form the leaf, in what order, and the palettes are in
-  `src/data/collage.ts`; the geometry and packing are in `src/lib/leaf.ts`.
+- Palettes, board order and which pieces are featured live in
+  `src/data/collage.ts`; scattering, the board and the symbol mask in
+  `src/lib/leaf.ts`; the motion in `src/styles/collage.css`.
 - Works and talks come from `src/data/works.ts`, and blog posts are pulled in
   from `src/pages/blog/`.
 - Music: `incipit` is the opening in [ABC notation](https://abcnotation.com),

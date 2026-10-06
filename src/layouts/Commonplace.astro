@@ -15,6 +15,7 @@ const { title, description } = Astro.props;
 const { influences } = await getCollage();
 const credits = [
     { title: anchor.title, credit: anchor.image.credit },
+    { title: "The Hidden Leaf symbol", credit: "traced from Konohagakure.svg, via Wikimedia Commons" },
     ...influences.flatMap((item) =>
         item.images
             .filter((image) => image.credit)

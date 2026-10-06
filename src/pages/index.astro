@@ -5,7 +5,7 @@ import { KIND_LABELS, anchor, getCollage, type CollageItem, type ItemKind } from
 import { imageUrl } from "../lib/images";
 import { SITE_DESCRIPTION } from "../config";
 
-const { leaf, ground, everything } = await getCollage();
+const { items, everything } = await getCollage();
 
 const groups = Object.entries(
     Object.groupBy(everything, (item) => item.kind) as Record<ItemKind, CollageItem[]>,
@@ -23,7 +23,7 @@ const groups = Object.entries(
                 </p>
                 <p>
                     Below is my commonplace book: the music, stories, books and ideas I keep
-                    coming back to, and a few things I've made. Scroll down into the leaf; click sheet music to hear it.
+                    coming back to, and a few things I've made. Scroll down into the leaf and watch it settle; click sheet music to hear it.
                 </p>
             </div>
 
@@ -43,7 +43,7 @@ const groups = Object.entries(
         </section>
 
         <div id="collage" class="home__collage">
-            <LeafCollage leaf={leaf} ground={ground} />
+            <LeafCollage items={items} />
         </div>
 
         <section class="index" aria-labelledby="index-title">

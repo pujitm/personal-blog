@@ -1,0 +1,512 @@
+/*
+ * The collage (components/commonplace/LeafCollage.astro).
+ *
+ * The world carries two numbers the scroll drives:
+ *   --spell  1 while scattered, fading to 0: how strongly the colors are cast
+ *   --order  0 scattered, 1 settled on the board
+ * Every piece knows where it lies scattered (--x0/--y0/--r0) and how far it
+ * moves and grows to land on the board (--dx/--dy/--s), and eases between
+ * the two on its own schedule (--delay).
+ */
+
+.leaf {
+    position: relative;
+    height: 500vh;
+}
+
+.leaf__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+}
+
+.leaf__world {
+    --order: 0;
+    --spell: 1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1000px;
+    height: 1000px;
+    transform-origin: 0 0;
+}
+
+/* Each layer is its own stack, so pieces' z-indexes stay inside it. */
+.leaf__layer {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.leaf__layer--warm {
+    z-index: 1;
+}
+
+.leaf__layer--lift {
+    z-index: 2;
+}
+
+/* The warm copy, cut to the Hidden Leaf. */
+.leaf__layer--warm {
+    -webkit-mask: var(--mask) 0 0 / 1000px 1000px no-repeat;
+    mask: var(--mask) 0 0 / 1000px 1000px no-repeat;
+    opacity: var(--spell);
+    pointer-events: none;
+}
+
+.leaf__fill {
+    position: absolute;
+    inset: 0;
+    background: #df4a24;
+}
+
+.leaf__layer--lift {
+    pointer-events: none;
+}
+
+.leaf__hint {
+    position: absolute;
+    left: 50%;
+    bottom: 1.25rem;
+    translate: -50% 0;
+    margin: 0;
+    padding: 0.1rem 0.9rem 0.25rem;
+    border-radius: 999px;
+    background: var(--paper);
+    box-shadow: 0 4px 14px -6px rgb(30 15 0 / 0.4);
+    font-family: var(--font-hand);
+    font-size: 1.5rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--ink);
+    opacity: calc(1 - var(--progress, 0) * 8);
+    pointer-events: none;
+}
+
+.leaf__hint::after {
+    content: " ↓";
+    font-family: var(--font-serif);
+}
+
+/* ------------------------------------------------------ pieces and scraps */
+
+.cp,
+.cs {
+    position: absolute;
+    box-sizing: border-box;
+    left: calc(var(--x0) * 1px - var(--w) * 0.5px);
+    top: calc(var(--y0) * 1px - var(--h) * 0.5px);
+    width: calc(var(--w) * 1px);
+    height: calc(var(--h) * 1px);
+    z-index: var(--z);
+}
+
+.cp *,
+.cs * {
+    box-sizing: border-box;
+}
+
+.cp {
+    --dx: var(--dxD);
+    --dy: var(--dyD);
+    --s: var(--sD);
+    --delay: var(--delayD);
+    /* This piece's own progress, eased: it lands when its turn comes. */
+    --t: clamp(0, (var(--order) - var(--delay)) / 0.44, 1);
+    --e: calc(var(--t) * var(--t) * (3 - 2 * var(--t)));
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+    translate: calc(var(--dx) * var(--e) * 1px) calc(var(--dy) * var(--e) * 1px);
+    rotate: calc(var(--r0) * (1 - var(--e)) * 1deg);
+    scale: calc(1 + (var(--s) - 1) * var(--e));
+}
+
+@media (max-width: 40rem) {
+    .cp {
+        --dx: var(--dxM);
+        --dy: var(--dyM);
+        --s: var(--sM);
+        --delay: var(--delayM);
+    }
+}
+
+.cp:focus-visible {
+    outline: none;
+}
+
+.cp:focus-visible .cp__body {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Scraps: glued paper. They fall away as things settle. */
+.cs {
+    display: block;
+    background: var(--paper);
+    color: var(--ink);
+    rotate: calc(var(--r0) * 1deg);
+    translate: 0 calc(var(--order) * var(--fall) * 300px);
+    opacity: clamp(0, 1 - var(--order) * 2.4 / var(--fall), 1);
+    pointer-events: none;
+}
+
+/* ---- the spell: warm inside the leaf, cool outside, true once it breaks */
+
+.leaf__layer--cool .cs {
+    --paper: var(--cool);
+    --ink: var(--cool-ink);
+}
+
+.leaf__layer--warm .cs,
+.leaf__layer--warm .cp {
+    --paper: var(--warm);
+    --ink: var(--warm-ink);
+}
+
+.leaf__layer--cool .cp,
+.cp--lifted {
+    --paper: color-mix(in oklab, var(--cool) calc(var(--spell) * 100%), var(--true));
+    --ink: color-mix(in oklab, var(--cool-ink) calc(var(--spell) * 100%), var(--true-ink));
+}
+
+.leaf__layer--cool .cp img {
+    filter: grayscale(var(--spell)) sepia(var(--spell)) saturate(calc(1 + 0.5 * var(--spell)))
+        hue-rotate(calc(var(--spell) * var(--tc))) brightness(calc(1 - 0.14 * var(--spell)));
+}
+
+.leaf__layer--warm .cp img {
+    filter: grayscale(1) sepia(1) saturate(4.4) hue-rotate(var(--tw)) contrast(1.06);
+}
+
+/* ---- lifted on hover: a copy above everything, straightened, in true colors */
+
+.cp--lifted {
+    --spell: 0;
+    z-index: 1;
+    rotate: none;
+    transform: scale(var(--lift, 1.3));
+    animation: lift 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.cp--lifted img {
+    filter: none;
+}
+
+.cp--lifted .cp__body {
+    box-shadow:
+        0 2px 3px rgb(30 15 0 / 0.25),
+        0 24px 40px -16px rgb(30 15 0 / 0.6);
+}
+
+.cp--lifted::after {
+    content: attr(data-title);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 6px);
+    translate: -50% 0;
+    padding: 3px 6px;
+    background: #1c1a17;
+    color: #f4efe4;
+    font: 500 calc(9px / var(--lift, 1.3)) / 1.2 var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+@keyframes lift {
+    from {
+        transform: scale(1);
+    }
+}
+
+/* ------------------------------------------------------------- materials */
+
+.cp__body {
+    container-type: size;
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow:
+        0 0.5px 1px rgb(30 15 0 / 0.25),
+        0 5px 9px -5px rgb(30 15 0 / 0.5);
+}
+
+/* Photos, in a paper frame. */
+.photo {
+    padding: 3.5%;
+}
+
+.photo__frames {
+    display: flex;
+    gap: 3%;
+    width: 100%;
+    height: 100%;
+}
+
+.photo__frames img {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Settled photos get a caption. */
+.photo__title {
+    position: absolute;
+    left: 3.5%;
+    right: 3.5%;
+    bottom: 3.5%;
+    padding: 2.5% 4%;
+    background: rgb(251 250 245 / 0.92);
+    color: #1c1a17;
+    font-size: clamp(6px, 6.5cqi, 15px);
+    line-height: 1.2;
+    opacity: var(--e);
+}
+
+.cp--lifted .photo__title {
+    opacity: 1;
+}
+
+.photo.is-empty .photo__frames {
+    display: none;
+}
+
+/* Transparent images are cut-outs: no frame, a shadow that follows them. */
+.cp[data-alpha] .cp__body {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.cp[data-alpha] .photo__frames img {
+    object-fit: contain;
+}
+
+.leaf__layer--cool .cp[data-alpha] img {
+    filter: grayscale(var(--spell)) sepia(var(--spell)) saturate(calc(1 + 0.5 * var(--spell)))
+        hue-rotate(calc(var(--spell) * var(--tc))) drop-shadow(0 3px 3px rgb(30 15 0 / 0.35));
+}
+
+.cp--lifted[data-alpha] img {
+    filter: drop-shadow(0 4px 4px rgb(30 15 0 / 0.35));
+}
+
+/* Sheet music, torn from the score. */
+.music {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    padding: 4% 4% 2.5%;
+}
+
+.music__label {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    font: 600 clamp(4.5px, 3.4cqi, 9px) / 1.2 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.music__label em {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.music .incipit {
+    --staff: currentColor;
+    --card: var(--paper);
+    height: 100%;
+    min-height: 0;
+    color: inherit;
+}
+
+.music .incipit__score,
+.music .abcjs-container {
+    height: 100%;
+}
+
+.music .abcjs-container {
+    padding-bottom: 0 !important;
+}
+
+.music .incipit__score svg {
+    width: 100%;
+    height: 100%;
+}
+
+.music .incipit svg path,
+.music .incipit svg text {
+    fill: currentColor;
+}
+
+.music .incipit svg .abcjs-staff,
+.music .incipit svg .abcjs-staff path {
+    fill: currentColor;
+    opacity: 0.55;
+}
+
+.music .incipit__marking {
+    background: var(--paper);
+    font-size: clamp(5px, 5cqi, 12px);
+    left: 2%;
+}
+
+.music .incipit[data-empty] .incipit__score {
+    aspect-ratio: auto;
+    opacity: 0.85;
+    background:
+        repeating-linear-gradient(transparent 0 calc(20% - 0.5px), currentColor calc(20% - 0.5px) 20%) 0 8% / 100% 34% no-repeat,
+        repeating-linear-gradient(transparent 0 calc(20% - 0.5px), currentColor calc(20% - 0.5px) 20%) 0 70% / 100% 34% no-repeat;
+}
+
+.music .incipit__cue {
+    font-size: clamp(5px, 4cqi, 9px);
+    padding: 1px 5px;
+}
+
+/* The Ramayana, on film. */
+.film {
+    display: flex;
+    gap: 3%;
+    padding: 8% 2.5%;
+    background:
+        radial-gradient(circle, #f3ede1 0 38%, transparent 42%) 0 4% / 3% 7% repeat-x,
+        radial-gradient(circle, #f3ede1 0 38%, transparent 42%) 0 96% / 3% 7% repeat-x,
+        var(--paper);
+}
+
+.film img {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Books. */
+.cover {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14% 11% 10% 16%;
+    border-radius: 1px 3px 3px 1px;
+    background:
+        linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 4%, rgb(255 255 255 / 0.15) 4% 5%, transparent 8%),
+        var(--paper);
+}
+
+.cover__title {
+    font-size: 12.5cqi;
+    font-weight: 500;
+    line-height: 1.05;
+}
+
+.cover__author {
+    margin-top: auto;
+    font-size: 8cqi;
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* Things I've made: index cards and sticky notes. */
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 7% 8%;
+    background:
+        linear-gradient(rgb(224 120 107 / calc(1 - var(--spell))), rgb(224 120 107 / calc(1 - var(--spell)))) 0 24% / 100% 1px no-repeat,
+        var(--paper);
+}
+
+.card__meta {
+    font: 500 clamp(4.5px, 4.4cqi, 9px) / 1.2 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.card__title {
+    font-size: 9.5cqi;
+    line-height: 1.12;
+}
+
+.card__desc {
+    font-size: 6.4cqi;
+    line-height: 1.3;
+    opacity: 0.8;
+}
+
+.sticky {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 11%;
+    background: linear-gradient(170deg, rgb(255 255 255 / 0.18), transparent), var(--paper);
+}
+
+.sticky__title {
+    font-family: var(--font-hand);
+    font-size: 16cqi;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.sticky__meta {
+    font: 500 clamp(4.5px, 7cqi, 9px) / 1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+/* Scrap textures. */
+.cs[data-kind="dots"] {
+    background:
+        radial-gradient(circle, rgb(0 0 0 / 0.22) 0 30%, transparent 34%) 0 0 / 7px 7px,
+        var(--paper);
+}
+
+.cs[data-kind="news"] {
+    background:
+        repeating-linear-gradient(transparent 0 3px, rgb(0 0 0 / 0.2) 3px 4px) 7px 8px / calc(50% - 10px) calc(100% - 16px) no-repeat,
+        repeating-linear-gradient(transparent 0 3px, rgb(0 0 0 / 0.2) 3px 4px) calc(50% + 3px) 8px / calc(50% - 10px) calc(100% - 16px) no-repeat,
+        var(--paper);
+}
+
+.cs[data-kind="graph"] {
+    background:
+        linear-gradient(rgb(255 255 255 / 0.25) 0.5px, transparent 0.5px) 0 0 / 7px 7px,
+        linear-gradient(90deg, rgb(255 255 255 / 0.25) 0.5px, transparent 0.5px) 0 0 / 7px 7px,
+        var(--paper);
+}
+
+.cs[data-kind="type"] {
+    display: grid;
+    place-items: center;
+}
+
+.cs__word {
+    font-size: 17px;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cp--lifted {
+        animation: none;
+    }
+}

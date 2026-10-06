@@ -1,6 +1,6 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { works } from "../data/works";
-import { leaf as leafOrder } from "../data/collage";
+import { BOARD_ORDER } from "../data/collage";
 import { imageInfo } from "./images";
 import type { Form } from "./leaf";
 
@@ -63,15 +63,15 @@ function fromEntry(entry: Entry): CollageItem {
     };
 }
 
-const placed = new Map(leafOrder.map((id, i) => [id, i]));
+const rank = (kind: string) => BOARD_ORDER.indexOf(kind as (typeof BOARD_ORDER)[number]);
 
-/** Things I love, leaf first in leaf order, then the rest. */
+/** Things I love, grouped the way the board settles. */
 export async function getInfluences(): Promise<CollageItem[]> {
     const entries = (await getCollection("commonplace"))
         .filter((entry) => !entry.data.draft)
         .sort(
             (a, b) =>
-                (placed.get(a.id) ?? Infinity) - (placed.get(b.id) ?? Infinity) ||
+                rank(a.data.kind) - rank(b.data.kind) ||
                 (a.data.order ?? Infinity) - (b.data.order ?? Infinity),
         );
     return entries.map(fromEntry);
@@ -127,29 +127,28 @@ export interface Laid {
     alpha?: boolean;
 }
 
-/** What each thing is made of, given where it lies. */
-function formFor(item: CollageItem, onLeaf: boolean): Form {
+/** What each thing is made of. */
+function formFor(item: CollageItem): Form {
     if (item.music || item.images.length > 2) return "wide";
-    if (item.kind === "book" && !item.images.length) return onLeaf ? "spine" : "cover";
+    if (item.kind === "book" && !item.images.length) return "cover";
     if (item.kind === "work") return "card";
     if (item.kind === "writing") return "square";
     return "image";
 }
 
-/** Everything on the collage, split into the leaf and the ground. */
+/** Everything on the collage, in board order. */
 export async function getCollage() {
     const influences = await getInfluences();
     const output = getOutput();
-    const lay = async (item: CollageItem, onLeaf: boolean): Promise<Laid> => ({
-        item,
-        form: formFor(item, onLeaf),
-        ...(item.images[0] ? await imageInfo(item.images[0].src) : {}),
-    });
-    const leaf = await Promise.all(influences.filter((i) => placed.has(i.id)).map((i) => lay(i, true)));
-    const ground = await Promise.all(
-        [...influences.filter((i) => !placed.has(i.id)), ...output].map((i) => lay(i, false)),
+    const everything = [...influences, ...output];
+    const items: Laid[] = await Promise.all(
+        everything.map(async (item) => ({
+            item,
+            form: formFor(item),
+            ...(item.images[0] ? await imageInfo(item.images[0].src) : {}),
+        })),
     );
-    return { influences, output, leaf, ground, everything: [...influences, ...output] };
+    return { influences, output, items, everything };
 }
 
 export function formatDate(date: Date) {
