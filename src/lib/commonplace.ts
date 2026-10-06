@@ -131,8 +131,8 @@ export interface Laid {
 
 /** What each thing is made of. */
 function formFor(item: CollageItem): Form {
+    if (item.kind === "book") return "cover";
     if (item.music || item.images.length > 2) return "wide";
-    if (item.kind === "book" && !item.images.length) return "cover";
     if (item.kind === "work") return "card";
     if (item.kind === "writing") return "square";
     return "image";
@@ -147,7 +147,7 @@ export async function getCollage() {
         everything.map(async (item) => ({
             item,
             form: formFor(item),
-            ...(item.images[0] ? await imageInfo(item.images[0].src) : {}),
+            ...(item.images[0] ? await imageInfo(item.images[0].src, item.images[0].fallback) : {}),
         })),
     );
     return { influences, output, items, everything };

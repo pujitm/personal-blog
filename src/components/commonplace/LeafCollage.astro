@@ -45,12 +45,18 @@ const things: Thing[] = items.map((laid) => {
     const { item } = laid;
     const form = item.music ? "music" : laid.form;
     let [w, h] = SIZE[form] ?? [0, 0];
+    if (form === "cover" && laid.aspect) {
+        const aspect = Math.min(0.8, Math.max(0.56, laid.aspect));
+        w = Math.sqrt(w * h * aspect);
+        h = w / aspect;
+    }
     if (form === "image") {
         const aspect = Math.min(1.9, Math.max(0.62, (laid.aspect ?? 1.33) * (item.images.length === 2 ? 2 : 1)));
         w = Math.sqrt(AREA * aspect);
         h = AREA / w;
     }
-    const color = form === "cover" ? hexRgb(item.color ?? "#777777") : laid.color ?? [240, 236, 226];
+    // A cover's own color when it's been downloaded, else the one noted for it.
+    const color = laid.color ?? (form === "cover" ? hexRgb(item.color ?? "#777777") : [240, 236, 226]);
     const role: Thing["role"] =
         item.id === EYE ? "eye" : item.music ? "music" : item.kind === "book" ? "book" : form === "card" || form === "square" ? "note" : "picture";
     return { id: item.id, form: laid.form, w, h, hue: hueOf(color), role };

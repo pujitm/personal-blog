@@ -37,20 +37,28 @@ async function filesUnder(dir) {
     return nested.flat();
 }
 
-/** Image URLs written as `src:` or `fallback:` in content and data files. */
-async function findImageUrls() {
-    const urls = new Set();
+/**
+ * Image URLs written as `src:` in content and data files, each with the
+ * `fallback:` written right under it, if any.
+ */
+async function findImages() {
+    const images = new Map();
     for (const dir of SOURCES) {
         for (const file of await filesUnder(path.join(root, dir))) {
             if (!/\.(md|mdx|ts|js|json)$/.test(file)) continue;
             const text = await fs.readFile(file, "utf8");
-            for (const match of text.matchAll(/\b(?:src|fallback):\s*["'`]?(https?:\/\/[^"'`\s]+)/g)) {
-                urls.add(match[1]);
+            const url = /["'`]?(https?:\/\/[^"'`\s]+)["'`]?,?/.source;
+            for (const match of text.matchAll(new RegExp(`\\bsrc:\\s*${url}(?:\\s*fallback:\\s*${url})?`, "g"))) {
+                images.set(match[1], match[2]);
             }
         }
     }
-    return [...urls];
+    return images;
 }
+
+// Anything smaller is a placeholder (Amazon answers a missing cover with a
+// 1x1 GIF), not the picture.
+const TOO_SMALL = 1500;
 
 async function download(url) {
     const response = await fetch(url, {
@@ -67,8 +75,10 @@ async function download(url) {
     if (!response.ok || !EXTENSIONS[type]) {
         throw new Error(`${response.status} ${type || "no content-type"}`);
     }
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (bytes.length < TOO_SMALL) throw new Error(`only ${bytes.length} bytes, a placeholder`);
     const name = `${createHash("sha1").update(url).digest("hex").slice(0, 16)}.${EXTENSIONS[type]}`;
-    await fs.writeFile(path.join(OUT, name), Buffer.from(await response.arrayBuffer()));
+    await fs.writeFile(path.join(OUT, name), bytes);
     return name;
 }
 
@@ -77,25 +87,31 @@ export async function selfHostImages(log = console) {
     const manifest = existsSync(MANIFEST)
         ? JSON.parse(await fs.readFile(MANIFEST, "utf8"))
         : {};
-    const urls = await findImageUrls();
-    const missing = urls.filter(
-        (url) => !manifest[url] || !existsSync(path.join(OUT, manifest[url])),
-    );
-    let fetched = 0;
-    await Promise.all(
-        missing.map(async (url) => {
-            try {
-                manifest[url] = await download(url);
-                fetched++;
-                log.info(`self-hosted ${url} -> ${manifest[url]}`);
-            } catch (error) {
-                delete manifest[url];
-                log.warn(`couldn't self-host ${url} (${error.message}); it will be hotlinked`);
-            }
+    const images = await findImages();
+    const hosted = (url) => manifest[url] && existsSync(path.join(OUT, manifest[url]));
+    const host = async (url) => {
+        try {
+            manifest[url] = await download(url);
+            log.info(`self-hosted ${url} -> ${manifest[url]}`);
+            return true;
+        } catch (error) {
+            delete manifest[url];
+            log.warn(`couldn't self-host ${url} (${error.message})`);
+            return false;
+        }
+    };
+    // An image's fallback is only fetched when the image itself can't be.
+    const results = await Promise.all(
+        [...images].map(async ([src, fallback]) => {
+            if (hosted(src) || (fallback && hosted(fallback))) return true;
+            if (await host(src)) return true;
+            if (fallback && (await host(fallback))) return true;
+            log.warn(`${src} will be hotlinked`);
+            return false;
         }),
     );
     await fs.writeFile(MANIFEST, JSON.stringify(manifest, null, 2) + "\n");
-    log.info(`${urls.length - missing.length + fetched}/${urls.length} images self-hosted`);
+    log.info(`${results.filter(Boolean).length}/${images.size} images self-hosted`);
 }
 
 /** Astro integration: fetch before building. */

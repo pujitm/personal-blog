@@ -56,7 +56,7 @@
 
 /* ------------------------------------------------------ pieces and scraps */
 
-.cp {
+.piece {
     position: absolute;
     box-sizing: border-box;
     left: calc(var(--x0) * 1px - var(--w) * 0.5px);
@@ -66,11 +66,11 @@
     z-index: var(--z);
 }
 
-.cp * {
+.piece * {
     box-sizing: border-box;
 }
 
-.cp {
+.piece {
     --dx: var(--dxD);
     --dy: var(--dyD);
     --s: var(--sD);
@@ -87,7 +87,7 @@
 }
 
 @media (max-width: 40rem) {
-    .cp {
+    .piece {
         --dx: var(--dxM);
         --dy: var(--dyM);
         --s: var(--sM);
@@ -95,19 +95,19 @@
     }
 }
 
-.cp:focus-visible {
+.piece:focus-visible {
     outline: none;
 }
 
-.cp:focus-visible .cp__body {
+.piece:focus-visible .piece__body {
     outline: 3px solid var(--accent);
     outline-offset: 2px;
 }
 
 /* Hover lifts a piece, straightened, to a size you can read. */
-.cp:hover,
-.cp:focus-visible,
-.cp:focus-within {
+.piece:hover,
+.piece:focus-visible,
+.piece:focus-within {
     z-index: 1000;
     rotate: none;
     transform: scale(
@@ -116,14 +116,14 @@
     transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.cp:hover .cp__body,
-.cp:focus-within .cp__body {
+.piece:hover .piece__body,
+.piece:focus-within .piece__body {
     box-shadow:
         0 2px 3px rgb(30 15 0 / 0.25),
         0 24px 40px -16px rgb(30 15 0 / 0.6);
 }
 
-.cp::after {
+.piece::after {
     content: attr(data-title);
     position: absolute;
     left: 50%;
@@ -141,20 +141,20 @@
     pointer-events: none;
 }
 
-.cp:hover::after,
-.cp:focus-visible::after {
+.piece:hover::after,
+.piece:focus-visible::after {
     opacity: 1;
 }
 
 @media (hover: none) {
-    .cp::after {
+    .piece::after {
         display: none;
     }
 }
 
 /* ------------------------------------------------------------- materials */
 
-.cp__body {
+.piece__body {
     container-type: size;
     position: relative;
     display: block;
@@ -203,7 +203,7 @@
     opacity: var(--e);
 }
 
-.cp:hover .photo__title {
+.piece:hover .photo__title {
     opacity: 1;
 }
 
@@ -212,18 +212,18 @@
 }
 
 /* Transparent images are cut-outs: no frame, a shadow that follows them. */
-.cp[data-alpha] .cp__body {
+.piece[data-alpha] .piece__body {
     padding: 0;
     background: none;
     box-shadow: none;
     overflow: visible;
 }
 
-.cp[data-alpha] .photo__frames img {
+.piece[data-alpha] .photo__frames img {
     object-fit: contain;
 }
 
-.cp[data-alpha] img {
+.piece[data-alpha] img {
     filter: drop-shadow(0 3px 3px rgb(30 15 0 / 0.35));
 }
 
@@ -322,16 +322,33 @@
     object-fit: cover;
 }
 
-/* Books. */
+/* Books: the printed cover over a plain one, which shows if it fails. */
 .cover {
     display: flex;
     flex-direction: column;
     gap: 4px;
     padding: 14% 11% 10% 16%;
     border-radius: 1px 3px 3px 1px;
+    background: var(--paper);
+}
+
+.cover__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* The spine, and light across the board. */
+.cover::after {
+    content: "";
+    position: absolute;
+    inset: 0;
     background:
-        linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 4%, rgb(255 255 255 / 0.15) 4% 5%, transparent 8%),
-        var(--paper);
+        linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 4%, rgb(255 255 255 / 0.18) 4% 5%, transparent 9%),
+        linear-gradient(160deg, rgb(255 255 255 / 0.12), transparent 45%);
+    pointer-events: none;
 }
 
 .cover__title {
@@ -400,7 +417,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .cp:hover {
+    .piece:hover {
         transition: none;
     }
 }

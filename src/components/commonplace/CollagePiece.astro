@@ -14,7 +14,7 @@ const { laid, style } = Astro.props;
 const { item, form } = laid;
 const images = item.images.map((image) => ({
     ...image,
-    src: imageUrl(image.src),
+    src: imageUrl(image.src, image.fallback),
     fallback: image.fallback && imageUrl(image.fallback),
 }));
 const music = item.music;
@@ -33,7 +33,7 @@ const linkProps =
 ---
 
 <Root
-    class="cp"
+    class="piece"
     data-form={music ? "music" : form}
     data-kind={item.kind}
     data-id={item.id}
@@ -44,7 +44,7 @@ const linkProps =
 >
     {
         music && first ? (
-            <div class="cp__body music">
+            <div class="piece__body music">
                 <span class="music__label">
                     {music.composer.split(" ").at(-1)} · {item.title}
                     <em>{music.performer.split(" · ")[0]}</em>
@@ -58,29 +58,39 @@ const linkProps =
                 />
             </div>
         ) : form === "wide" ? (
-            <span class="cp__body film">
+            <span class="piece__body film">
                 {images.slice(0, 3).map((image) => (
                     <img src={image.src} alt="" decoding="async" />
                 ))}
             </span>
         ) : form === "cover" ? (
-            <span class="cp__body cover">
+            <span class="piece__body cover">
                 <span class="cover__title">{item.title}</span>
                 <span class="cover__author">{item.subtitle}</span>
+                {images[0] && (
+                    <img
+                        class="cover__image"
+                        src={images[0].src}
+                        data-fallback={images[0].fallback}
+                        alt=""
+                        decoding="async"
+                        onerror="window.commonplaceImageError?.(this)"
+                    />
+                )}
             </span>
         ) : form === "card" ? (
-            <span class="cp__body card">
+            <span class="piece__body card">
                 <span class="card__meta">{item.date && formatDate(item.date)}</span>
                 <span class="card__title">{item.title}</span>
                 {item.description && <span class="card__desc">{item.description}</span>}
             </span>
         ) : form === "square" ? (
-            <span class="cp__body sticky">
+            <span class="piece__body sticky">
                 <span class="sticky__title">{item.title}</span>
                 <span class="sticky__meta">{item.date && formatDate(item.date)}</span>
             </span>
         ) : (
-            <span class="cp__body photo">
+            <span class="piece__body photo">
                 <span class="photo__frames">
                     {images.slice(0, 2).map((image) => (
                         <img

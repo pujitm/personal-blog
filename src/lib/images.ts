@@ -19,18 +19,22 @@ const local = (src: string) => {
     return file && existsSync(path.join(DIR, file)) ? file : undefined;
 };
 
-/** The self-hosted copy of a remote image when there is one, else the original. */
-export function imageUrl(src: string): string {
+/**
+ * The self-hosted copy of a remote image when there is one (or of its
+ * fallback, when only that one could be fetched), else the original.
+ */
+export function imageUrl(src: string, fallback?: string): string {
     if (!/^https?:/.test(src)) return src;
-    const file = local(src);
+    const file = local(src) ?? (fallback ? local(fallback) : undefined);
     return file ? `/images/remote/${file}` : src;
 }
 
 /** Shape, dominant color, and whether it's a cut-out, for a self-hosted image. */
 export async function imageInfo(
     src: string,
+    fallback?: string,
 ): Promise<{ aspect?: number; alpha?: boolean; color?: [number, number, number] }> {
-    const file = local(src);
+    const file = local(src) ?? (fallback ? local(fallback) : undefined);
     if (!file) return {};
     try {
         const { default: sharp } = await import("sharp");

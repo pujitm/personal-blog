@@ -3,7 +3,7 @@ import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Commonplace.astro";
 import Incipit from "../../components/commonplace/Incipit.astro";
 import { KIND_LABELS, getInfluences, tracksFor } from "../../lib/commonplace";
-import { imageUrl } from "../../lib/images";
+import { imageInfo, imageUrl } from "../../lib/images";
 
 export async function getStaticPaths() {
     const entries = await getCollection("commonplace", (entry) => !entry.data.draft);
@@ -28,6 +28,11 @@ const movements = (music?.movements ?? []).map((movement) => ({
     ...movement,
     trackIndex: movement.recording ? trackCursor++ : undefined,
 }));
+
+// Books stand as books: the cover, with a spine, at its own proportions.
+const book = entry.data.kind === "book";
+const cover = book ? entry.data.images[0] : undefined;
+const coverAspect = cover ? (await imageInfo(cover.src, cover.fallback)).aspect : undefined;
 
 const label = KIND_LABELS[entry.data.kind];
 const inkFor = (hex = "#333") => {
@@ -97,12 +102,35 @@ const description = music
                                 </li>
                             ))}
                         </ol>
+                    ) : book ? (
+                        <>
+                            <div class="entry__book" style={coverAspect && `aspect-ratio:${coverAspect.toFixed(3)}`}>
+                                <div
+                                    class="cover"
+                                    style={`--cover:${item?.color ?? "#3b3a36"};--cover-ink:${inkFor(item?.color)}`}
+                                >
+                                    <span class="cover__title">{entry.data.title}</span>
+                                    <span class="cover__author">{entry.data.subtitle}</span>
+                                    {cover && (
+                                        <img
+                                            class="cover__image"
+                                            src={imageUrl(cover.src, cover.fallback)}
+                                            data-fallback={cover.fallback && imageUrl(cover.fallback)}
+                                            alt={cover.alt}
+                                            referrerpolicy="no-referrer"
+                                            onerror="window.commonplaceImageError?.(this)"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                            {cover?.credit && <p class="entry__credit entry__credit--book">{cover.credit}</p>}
+                        </>
                     ) : entry.data.images.length ? (
                         <div class="gallery" data-count={entry.data.images.length}>
                             {entry.data.images.map((image) => (
                                 <figure class="entry__figure">
                                     <img
-                                        src={imageUrl(image.src)}
+                                        src={imageUrl(image.src, image.fallback)}
                                         data-fallback={image.fallback && imageUrl(image.fallback)}
                                         alt={image.alt}
                                         referrerpolicy="no-referrer"
@@ -112,19 +140,7 @@ const description = music
                                 </figure>
                             ))}
                         </div>
-                    ) : (
-                        item?.kind === "book" && (
-                            <div class="entry__book">
-                                <div
-                                    class="cover"
-                                    style={`--cover:${item.color ?? "#3b3a36"};--cover-ink:${inkFor(item.color)}`}
-                                >
-                                    <span class="cover__title">{item.title}</span>
-                                    <span class="cover__author">{item.subtitle}</span>
-                                </div>
-                            </div>
-                        )
-                    )
+                    ) : null
                 }
                 {
                     music && tracks.length > 0 && (
@@ -324,6 +340,8 @@ const description = music
     }
 
     .cover {
+        position: relative;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -336,6 +354,30 @@ const description = music
             var(--cover);
         color: var(--cover-ink);
         box-shadow: 0 2px 2px rgb(40 25 5 / 0.18), 0 24px 40px -20px rgb(40 25 5 / 0.6);
+    }
+
+    /* The printed cover sits over the plain one, which shows if it fails. */
+    .cover__image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* The spine, and light across the board. */
+    .cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(90deg, rgb(0 0 0 / 0.28) 0 3%, rgb(255 255 255 / 0.18) 3% 3.6%, transparent 7%),
+            linear-gradient(160deg, rgb(255 255 255 / 0.12), transparent 45%);
+        pointer-events: none;
+    }
+
+    .entry__credit--book {
+        text-align: center;
     }
 
     .cover__title {
