@@ -114,9 +114,9 @@ const description = music
                         </div>
                     ) : (
                         item?.kind === "book" && (
-                            <div class="entry__book piece" data-treatment="cover">
+                            <div class="entry__book">
                                 <div
-                                    class="piece__body cover"
+                                    class="cover"
                                     style={`--cover:${item.color ?? "#3b3a36"};--cover-ink:${inkFor(item.color)}`}
                                 >
                                     <span class="cover__title">{item.title}</span>
@@ -319,8 +319,36 @@ const description = music
         width: min(100%, 24rem);
         aspect-ratio: 2 / 3;
         margin: 0 auto;
-        transform: rotate(2deg);
-        animation: none;
+        rotate: 2deg;
+        container-type: size;
+    }
+
+    .cover {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        height: 100%;
+        padding: 14% 11% 11% 17%;
+        border-radius: 2px 6px 6px 2px;
+        background:
+            linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 4%, rgb(255 255 255 / 0.14) 4% 5%, transparent 8%),
+            linear-gradient(160deg, rgb(255 255 255 / 0.12), transparent 45%),
+            var(--cover);
+        color: var(--cover-ink);
+        box-shadow: 0 2px 2px rgb(40 25 5 / 0.18), 0 24px 40px -20px rgb(40 25 5 / 0.6);
+    }
+
+    .cover__title {
+        font-size: 11cqi;
+        font-weight: 500;
+        line-height: 1.05;
+    }
+
+    .cover__author {
+        margin-top: auto;
+        font-size: 6cqi;
+        font-style: italic;
+        opacity: 0.85;
     }
 
     .entry__body {

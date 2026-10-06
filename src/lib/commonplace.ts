@@ -1,6 +1,8 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { works } from "../data/works";
-import { composition, type Art } from "../data/collage";
+import { leaf as leafOrder } from "../data/collage";
+import { imageInfo } from "./images";
+import type { Form } from "./leaf";
 
 type Entry = CollectionEntry<"commonplace">;
 type EntryData = Entry["data"];
@@ -61,9 +63,9 @@ function fromEntry(entry: Entry): CollageItem {
     };
 }
 
-const placed = new Map(composition.map((art, i) => [art.id, i]));
+const placed = new Map(leafOrder.map((id, i) => [id, i]));
 
-/** Things I love, in collage order. */
+/** Things I love, leaf first in leaf order, then the rest. */
 export async function getInfluences(): Promise<CollageItem[]> {
     const entries = (await getCollection("commonplace"))
         .filter((entry) => !entry.data.draft)
@@ -117,54 +119,37 @@ export function getOutput(): CollageItem[] {
     );
 }
 
-export type Piece =
-    | { type: "item"; item: CollageItem; art: Art }
-    | { type: "stack"; books: CollageItem[]; art: Art };
+export interface Laid {
+    item: CollageItem;
+    form: Form;
+    aspect?: number;
+    /** A transparent cut-out rather than a rectangle. */
+    alpha?: boolean;
+}
 
-const DEFAULT_ART: Partial<Record<ItemKind, Omit<Art, "id">>> = {
-    music: { shape: "5x4", treatment: "strip", depth: 3 },
-    book: { shape: "2x6", treatment: "cover", depth: 1 },
-    work: { shape: "3x4", treatment: "print", depth: 1 },
-    writing: { shape: "2x4", treatment: "print", depth: 2 },
-};
+/** What each thing is made of, given where it lies. */
+function formFor(item: CollageItem, onLeaf: boolean): Form {
+    if (item.music || item.images.length > 2) return "wide";
+    if (item.kind === "book" && !item.images.length) return onLeaf ? "spine" : "cover";
+    if (item.kind === "work") return "card";
+    if (item.kind === "writing") return "square";
+    return "image";
+}
 
-const artFor = (item: CollageItem): Art => {
-    const listed = composition.find((art) => art.id === item.id);
-    if (listed) return listed;
-    const fallback = DEFAULT_ART[item.kind] ?? { shape: "3x6", treatment: "print", depth: 1 };
-    return { id: item.id, ...fallback, shape: item.shape ?? fallback.shape };
-};
-
-/** Everything on the collage, in the order it's laid down. */
+/** Everything on the collage, split into the leaf and the ground. */
 export async function getCollage() {
     const influences = await getInfluences();
     const output = getOutput();
-
-    // Books I'm reading now become one stack, wherever "@reading" sits.
-    const reading = influences.filter((item) => item.kind === "book" && item.shelf === "reading");
-    const stackAt = composition.findIndex((art) => art.id === "@reading");
-    const pieces: Piece[] = [];
-    for (const item of influences) {
-        if (reading.includes(item)) continue;
-        if (stackAt >= 0 && pieces.length === stackAt && reading.length) {
-            pieces.push({ type: "stack", books: reading, art: composition[stackAt] });
-        }
-        pieces.push({ type: "item", item, art: artFor(item) });
-    }
-
-    // Spread what I've made evenly through the rest.
-    const laid: Piece[] = [];
-    let made = 0;
-    pieces.forEach((piece, i) => {
-        laid.push(piece);
-        const due = Math.floor(((i + 1) * output.length) / pieces.length);
-        while (made < due) {
-            const item = output[made++];
-            laid.push({ type: "item", item, art: artFor(item) });
-        }
+    const lay = async (item: CollageItem, onLeaf: boolean): Promise<Laid> => ({
+        item,
+        form: formFor(item, onLeaf),
+        ...(item.images[0] ? await imageInfo(item.images[0].src) : {}),
     });
-
-    return { influences, output, pieces: laid, everything: [...influences, ...output] };
+    const leaf = await Promise.all(influences.filter((i) => placed.has(i.id)).map((i) => lay(i, true)));
+    const ground = await Promise.all(
+        [...influences.filter((i) => !placed.has(i.id)), ...output].map((i) => lay(i, false)),
+    );
+    return { influences, output, leaf, ground, everything: [...influences, ...output] };
 }
 
 export function formatDate(date: Date) {

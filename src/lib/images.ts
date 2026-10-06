@@ -1,14 +1,13 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
-// Written by integrations/self-host-images.mjs before each build.
+// Written by integrations/self-host-images.mjs (or the Self-host images
+// workflow) into public/images/remote.
 const DIR = path.join(process.cwd(), "public/images/remote");
 
 let manifest: Record<string, string> | undefined;
 
-/** The self-hosted copy of a remote image when there is one, else the original. */
-export function imageUrl(src: string): string {
-    if (!/^https?:/.test(src)) return src;
+const local = (src: string) => {
     if (!manifest) {
         try {
             manifest = JSON.parse(readFileSync(path.join(DIR, "manifest.json"), "utf8"));
@@ -17,5 +16,25 @@ export function imageUrl(src: string): string {
         }
     }
     const file = manifest![src];
-    return file && existsSync(path.join(DIR, file)) ? `/images/remote/${file}` : src;
+    return file && existsSync(path.join(DIR, file)) ? file : undefined;
+};
+
+/** The self-hosted copy of a remote image when there is one, else the original. */
+export function imageUrl(src: string): string {
+    if (!/^https?:/.test(src)) return src;
+    const file = local(src);
+    return file ? `/images/remote/${file}` : src;
+}
+
+/** Shape of a self-hosted image, and whether it's a cut-out, if we have it. */
+export async function imageInfo(src: string): Promise<{ aspect?: number; alpha?: boolean }> {
+    const file = local(src);
+    if (!file) return {};
+    try {
+        const { default: sharp } = await import("sharp");
+        const { width, height, hasAlpha } = await sharp(path.join(DIR, file)).metadata();
+        return { aspect: width && height ? width / height : undefined, alpha: hasAlpha };
+    } catch {
+        return {};
+    }
 }

@@ -1,12 +1,11 @@
 ---
 import Layout from "../layouts/Commonplace.astro";
-import Insignia from "../components/commonplace/Insignia.astro";
-import Piece from "../components/commonplace/Piece.astro";
+import LeafCollage from "../components/commonplace/LeafCollage.astro";
 import { KIND_LABELS, anchor, getCollage, type CollageItem, type ItemKind } from "../lib/commonplace";
 import { imageUrl } from "../lib/images";
 import { SITE_DESCRIPTION } from "../config";
 
-const { pieces, everything } = await getCollage();
+const { leaf, ground, everything } = await getCollage();
 
 const groups = Object.entries(
     Object.groupBy(everything, (item) => item.kind) as Record<ItemKind, CollageItem[]>,
@@ -15,10 +14,6 @@ const groups = Object.entries(
 
 <Layout title="pujit mehrotra" description={SITE_DESCRIPTION}>
     <main class="home">
-        <div class="home__paint" aria-hidden="true">
-            <div class="home__brush"><Insignia /></div>
-        </div>
-
         <section class="hero" aria-labelledby="hello">
             <div class="hero__words">
                 <h1 id="hello">Hi, I'm Pujit.</h1>
@@ -28,7 +23,7 @@ const groups = Object.entries(
                 </p>
                 <p>
                     Below is my commonplace book: the music, stories, books and ideas I keep
-                    coming back to, and a few things I've made. Click the sheet music to hear it.
+                    coming back to, and a few things I've made. Scroll down into the leaf; click sheet music to hear it.
                 </p>
             </div>
 
@@ -47,11 +42,9 @@ const groups = Object.entries(
             </figure>
         </section>
 
-        <section id="collage" class="collage" aria-label="Commonplace book">
-            <div class="collage__grid">
-                {pieces.map((piece, i) => <Piece piece={piece} index={i} />)}
-            </div>
-        </section>
+        <div id="collage" class="home__collage">
+            <LeafCollage leaf={leaf} ground={ground} />
+        </div>
 
         <section class="index" aria-labelledby="index-title">
             <h2 id="index-title">Everything above, as a list</h2>
@@ -89,39 +82,6 @@ const groups = Object.entries(
         overflow-x: clip;
     }
 
-    /* The painted leaf stays put behind everything and zooms as you scroll. */
-    .home__paint {
-        position: sticky;
-        top: 0;
-        z-index: 0;
-        height: 100vh;
-        height: 100svh;
-        margin: 0 calc(-1 * var(--gutter)) -100vh;
-        margin-bottom: -100svh;
-        overflow: hidden;
-        pointer-events: none;
-    }
-
-    .home__brush {
-        --p: 0;
-        position: absolute;
-        left: calc(70% - var(--p) * 20%);
-        top: 54%;
-        width: min(84vw, 98svh);
-        translate: -50% -50%;
-        scale: calc(1 + var(--p) * 1.9);
-        rotate: calc(var(--p) * -110deg);
-        opacity: calc(0.92 - var(--p) * 0.5);
-        mix-blend-mode: multiply;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .home__brush {
-            mix-blend-mode: normal;
-            opacity: calc(0.7 - var(--p) * 0.4);
-        }
-    }
-
     /* ---- hello */
 
     .hero {
@@ -152,9 +112,6 @@ const groups = Object.entries(
             gap: 2rem;
         }
 
-        .hero__photo {
-            order: 0;
-        }
     }
 
     .hero__words {
@@ -187,7 +144,7 @@ const groups = Object.entries(
         position: relative;
         justify-self: center;
         width: min(100%, 34rem, 62svh);
-        order: -1; /* Einstein first on phones */
+        order: -1; /* Einstein first, then hello */
         margin: 0;
         padding: 3.2% 3.2% 13%;
         background: #fbfaf5;
@@ -249,10 +206,10 @@ const groups = Object.entries(
         }
     }
 
-    /* ---- collage */
+    /* ---- collage: full bleed */
 
-    .collage {
-        padding: 2rem 2.5% 7rem;
+    .home__collage {
+        margin: 0 calc(-1 * var(--gutter));
     }
 
     /* ---- list */
@@ -315,32 +272,3 @@ const groups = Object.entries(
         text-decoration-color: var(--accent);
     }
 </style>
-
-<script>
-    function paint() {
-        const home = document.querySelector<HTMLElement>(".home");
-        const brush = home?.querySelector<HTMLElement>(".home__brush");
-        if (!home || !brush || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        let frame = 0;
-        const update = () => {
-            frame = 0;
-            const travel = Math.max(1, home.offsetHeight - innerHeight);
-            const p = Math.min(1, Math.max(0, scrollY / travel));
-            brush.style.setProperty("--p", p.toFixed(4));
-        };
-        const schedule = () => (frame ||= requestAnimationFrame(update));
-        update();
-        addEventListener("scroll", schedule, { passive: true });
-        addEventListener("resize", schedule);
-        document.addEventListener(
-            "astro:before-swap",
-            () => {
-                removeEventListener("scroll", schedule);
-                removeEventListener("resize", schedule);
-            },
-            { once: true },
-        );
-    }
-
-    document.addEventListener("astro:page-load", paint);
-</script>
