@@ -1,0 +1,41 @@
+# Downloads every image the site references (see
+# integrations/self-host-images.mjs) and commits the files, so the site serves
+# its own copies instead of hotlinking.
+name: Self-host images
+
+on:
+  push:
+    paths:
+      - "src/content/**"
+      - "src/data/**"
+      - "integrations/self-host-images.mjs"
+      - ".github/workflows/self-host-images.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: self-host-images-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node integrations/self-host-images.mjs
+      - name: Commit new images
+        run: |
+          git add public/images/remote
+          if git diff --cached --quiet; then
+            echo "No new images."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: self-host remote images"
+          git push

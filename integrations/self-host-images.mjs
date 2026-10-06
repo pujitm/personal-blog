@@ -87,6 +87,7 @@ export async function selfHostImages(log = console) {
             try {
                 manifest[url] = await download(url);
                 fetched++;
+                log.info(`self-hosted ${url} -> ${manifest[url]}`);
             } catch (error) {
                 delete manifest[url];
                 log.warn(`couldn't self-host ${url} (${error.message}); it will be hotlinked`);
