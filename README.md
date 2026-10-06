@@ -24,4 +24,10 @@ to open it or hear it.
   `end` seconds for trimming applause.
 - Images are self-hosted in `public/images/remote/`. Add an image URL to an
   entry and push: the "Self-host images" workflow downloads it and commits the
-  file (or run `npm run images` yourself).
+  file (or run `npm run images` yourself). An image's `fallback` is only
+  downloaded if the image itself can't be.
+- Book covers come from Open Library by ISBN
+  (`https://covers.openlibrary.org/b/isbn/<ISBN-13>-L.jpg?default=false`), with
+  Amazon's (`https://images-na.ssl-images-amazon.com/images/P/<ISBN-10>.01.LZZZZZZZ.jpg`)
+  as the fallback. A book whose cover can't be found shows a plain one in its
+  `color`.
