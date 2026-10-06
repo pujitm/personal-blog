@@ -3,7 +3,6 @@ import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Commonplace.astro";
 import Incipit from "../../components/commonplace/Incipit.astro";
 import { KIND_LABELS, getCollage, tracksFor } from "../../lib/commonplace";
-import { themeLabel } from "../../data/collage";
 import { imageInfo, imageUrl } from "../../lib/images";
 
 export async function getStaticPaths() {
@@ -53,8 +52,6 @@ const description = music
                 <p class="kicker">
                     {label}
                     {music && <> · {music.key}</>}
-                    {" · "}
-                    {themeLabel(entry.data.theme)}
                 </p>
                 <h1>{entry.data.title}</h1>
                 {

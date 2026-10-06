@@ -1,6 +1,6 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { works } from "../data/works";
-import { EYE, THEMES, type Theme } from "../data/collage";
+import { EYE, THEME_LAYOUT, THEMES, type Theme } from "../data/collage";
 import { imageInfo } from "./images";
 import type { Form } from "./leaf";
 
@@ -169,17 +169,35 @@ function spread<T>(base: T[], extra: T[]) {
 /**
  * One theme, in the order it runs along the symbol and settles on the board:
  * pictures and covers together by color, with notes and sheet music spread
- * evenly through them so no one medium bunches up, and the eye last.
+ * evenly through them so no one medium bunches up. Colors run one way, then
+ * back the other way in the next theme, so neighboring themes meet in
+ * similar colors.
  */
-function arrange(group: Laid[]) {
+function arrange(group: Laid[], k: number) {
     const note = (laid: Laid) => laid.form === "card" || laid.form === "square";
-    const rest = group.filter((laid) => laid.item.id !== EYE);
-    const pictures = rest
+    const direction = k % 2 ? -1 : 1;
+    const pictures = group
         .filter((laid) => !laid.item.music && !note(laid))
-        .sort((a, b) => hueOf(colorOf(a)) - hueOf(colorOf(b)));
-    const notes = rest.filter(note);
-    const music = rest.filter((laid) => laid.item.music);
-    return [...spread(spread(pictures, notes), music), ...group.filter((laid) => laid.item.id === EYE)];
+        .sort((a, b) => direction * (hueOf(colorOf(a)) - hueOf(colorOf(b))));
+    const notes = group.filter(note);
+    const music = group.filter((laid) => laid.item.music);
+    return spread(spread(pictures, notes), music);
+}
+
+/**
+ * The themes one after another. Blended, the tail of each theme and the head
+ * of the next interleave, a little more of the next at each step, so one
+ * runs into the other.
+ */
+function sequence(themes: Laid[][]) {
+    if (THEME_LAYOUT === "separate") return themes.flat();
+    const OVERLAP = 0.25; // of a theme's span, into each neighbor's
+    return themes
+        .flatMap((group, k) =>
+            group.map((laid, j) => ({ laid, key: k - OVERLAP + ((1 + 2 * OVERLAP) * (j + 0.5)) / group.length })),
+        )
+        .sort((a, b) => a.key - b.key)
+        .map(({ laid }) => laid);
 }
 
 async function build() {
@@ -191,10 +209,15 @@ async function build() {
             ...(item.images[0] ? await imageInfo(item.images[0].src, item.images[0].fallback) : {}),
         })),
     );
-    const items = THEMES.flatMap((theme) => arrange(laid.filter((l) => l.item.theme === theme.id)));
+    const eye = laid.filter((l) => l.item.id === EYE);
+    const rest = laid.filter((l) => l.item.id !== EYE);
+    const items = [
+        ...sequence(THEMES.map((theme, k) => arrange(rest.filter((l) => l.item.theme === theme.id), k))),
+        ...eye,
+    ];
     const mine = (item: CollageItem) => item.kind === "work" || item.kind === "writing";
     return {
-        /** Everything, by theme, in collage order. */
+        /** Everything, by theme, in collage order; the eye last. */
         items,
         /** The things I love, in the same order. */
         influences: items.map((l) => l.item).filter((item) => !mine(item)),
