@@ -2,6 +2,7 @@
 title: "Why England Slept"
 subtitle: John F. Kennedy
 kind: book
+theme: heroic-moral
 shelf: reading
 color: "#7f1d1d"
 images:

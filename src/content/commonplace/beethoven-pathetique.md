@@ -2,6 +2,7 @@
 title: Pathétique, first movement
 subtitle: Daniel Barenboim
 kind: music
+theme: tragic-psychological
 music:
   composer: Ludwig van Beethoven
   work: Piano Sonata No. 8 in C minor, Op. 13

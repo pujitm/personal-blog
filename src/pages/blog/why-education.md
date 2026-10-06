@@ -4,6 +4,7 @@ title: "Why Education"
 description: "Why work on education?"
 pubDate: "Nov 30 2025"
 # heroImage: "/placeholder-hero.jpg"
+theme: heroic-moral
 ---
 
 # Why Work On Education?

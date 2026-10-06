@@ -2,7 +2,8 @@
 import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Commonplace.astro";
 import Incipit from "../../components/commonplace/Incipit.astro";
-import { KIND_LABELS, getInfluences, tracksFor } from "../../lib/commonplace";
+import { KIND_LABELS, getCollage, tracksFor } from "../../lib/commonplace";
+import { themeLabel } from "../../data/collage";
 import { imageInfo, imageUrl } from "../../lib/images";
 
 export async function getStaticPaths() {
@@ -14,7 +15,8 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 const hasWriting = !!entry.body?.trim();
 
-const influences = await getInfluences();
+// Previous and next walk the collage's line, theme by theme.
+const { influences } = await getCollage();
 const index = influences.findIndex((item) => item.id === entry.id);
 const item = influences[index];
 const prev = influences[(index - 1 + influences.length) % influences.length];
@@ -51,6 +53,8 @@ const description = music
                 <p class="kicker">
                     {label}
                     {music && <> · {music.key}</>}
+                    {" · "}
+                    {themeLabel(entry.data.theme)}
                 </p>
                 <h1>{entry.data.title}</h1>
                 {

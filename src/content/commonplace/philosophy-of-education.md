@@ -2,6 +2,7 @@
 title: "Philosophy of Education"
 subtitle: Nel Noddings
 kind: book
+theme: romantic-spiritual
 shelf: reading
 color: "#4b4f58"
 images:

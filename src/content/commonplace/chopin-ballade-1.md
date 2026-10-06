@@ -2,6 +2,7 @@
 title: Ballade No. 1
 subtitle: Krystian Zimerman
 kind: music
+theme: tragic-psychological
 music:
   composer: Frédéric Chopin
   work: Ballade No. 1 in G minor, Op. 23

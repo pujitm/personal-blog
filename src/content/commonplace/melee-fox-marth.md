@@ -2,6 +2,7 @@
 title: Fox & Marth
 subtitle: Super Smash Bros. Melee
 kind: game
+theme: heroic-moral
 shape: 3x3
 images:
   - src: https://ssb.wiki.gallery/images/e/ee/SSBM_Fox_HQ.jpg

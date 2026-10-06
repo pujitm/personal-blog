@@ -2,6 +2,7 @@
 title: "Zero to One"
 subtitle: Peter Thiel
 kind: book
+theme: heroic-moral
 shelf: reading
 color: "#e8e2d4"
 images:

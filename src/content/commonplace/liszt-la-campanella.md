@@ -2,6 +2,7 @@
 title: La Campanella
 subtitle: Evgeny Kissin
 kind: music
+theme: heroic-moral
 music:
   composer: Franz Liszt
   work: Grandes études de Paganini, S. 141 No. 3

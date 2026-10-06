@@ -2,6 +2,7 @@
 title: "A Chance to Solve Their Own Problems"
 subtitle: Jal Mehta et al.
 kind: book
+theme: heroic-moral
 shelf: reading
 color: "#9a5b1e"
 images:

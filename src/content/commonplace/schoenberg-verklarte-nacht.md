@@ -2,6 +2,7 @@
 title: Verklärte Nacht
 subtitle: Pierre Boulez
 kind: music
+theme: romantic-spiritual
 music:
   composer: Arnold Schoenberg
   work: Verklärte Nacht, Op. 4

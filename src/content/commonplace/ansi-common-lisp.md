@@ -2,6 +2,7 @@
 title: "ANSI Common Lisp"
 subtitle: Paul Graham
 kind: book
+theme: romantic-spiritual
 shelf: reading
 color: "#a3311f"
 images:

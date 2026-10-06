@@ -2,6 +2,7 @@
 title: "Democracy and Education"
 subtitle: John Dewey
 kind: book
+theme: heroic-moral
 shelf: reading
 color: "#3f4a2f"
 images:

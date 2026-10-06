@@ -1,15 +1,17 @@
 ---
 import Layout from "../layouts/Commonplace.astro";
 import LeafCollage from "../components/commonplace/LeafCollage.astro";
-import { KIND_LABELS, anchor, getCollage, type CollageItem, type ItemKind } from "../lib/commonplace";
+import { KIND_LABELS, anchor, getCollage } from "../lib/commonplace";
 import { imageUrl } from "../lib/images";
+import { THEMES } from "../data/collage";
 import { SITE_DESCRIPTION } from "../config";
 
-const { items, everything } = await getCollage();
+const { items } = await getCollage();
 
-const groups = Object.entries(
-    Object.groupBy(everything, (item) => item.kind) as Record<ItemKind, CollageItem[]>,
-);
+const groups = THEMES.map((theme) => ({
+    ...theme,
+    items: items.map((laid) => laid.item).filter((item) => item.theme === theme.id),
+}));
 ---
 
 <Layout title="pujit mehrotra" description={SITE_DESCRIPTION}>
@@ -50,20 +52,23 @@ const groups = Object.entries(
             <h2 id="index-title">Everything above, as a list</h2>
             <div class="index__groups">
                 {
-                    groups.map(([kind, items]) => (
+                    groups.map((group) => (
                         <div class="index__group">
-                            <h3>{KIND_LABELS[kind]}</h3>
+                            <h3>{group.label}</h3>
                             <ul>
-                                {items.map((item) => (
+                                {group.items.map((item) => (
                                     <li>
-                                        <a
-                                            href={item.href}
-                                            target={item.external ? "_blank" : undefined}
-                                            rel={item.external ? "noopener" : undefined}
-                                        >
-                                            {item.title}
-                                        </a>
-                                        {item.subtitle && <span> · {item.subtitle}</span>}
+                                        <span class="index__kind">{KIND_LABELS[item.kind]}</span>
+                                        <span class="index__what">
+                                            <a
+                                                href={item.href}
+                                                target={item.external ? "_blank" : undefined}
+                                                rel={item.external ? "noopener" : undefined}
+                                            >
+                                                {item.title}
+                                            </a>
+                                            {item.subtitle && <em> · {item.subtitle}</em>}
+                                        </span>
                                     </li>
                                 ))}
                             </ul>
@@ -234,14 +239,10 @@ const groups = Object.entries(
     }
 
     .index__groups {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: 2rem 2.5rem;
         margin-top: 1.5rem;
-        columns: 15rem;
-        column-gap: 2.5rem;
-    }
-
-    .index__group {
-        break-inside: avoid;
-        margin-bottom: 2rem;
     }
 
     .index h3 {
@@ -258,9 +259,21 @@ const groups = Object.entries(
         line-height: 1.5;
     }
 
-    .index li span {
+    .index li {
+        display: grid;
+        grid-template-columns: 4.75rem 1fr;
+        align-items: baseline;
+    }
+
+    .index li em {
         color: var(--ink-3);
-        font-style: italic;
+    }
+
+    .index__kind {
+        font: 500 0.625rem/1 var(--font-mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
     }
 
     .index a {

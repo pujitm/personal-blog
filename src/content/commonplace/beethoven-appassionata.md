@@ -2,6 +2,7 @@
 title: Appassionata, third movement
 subtitle: Lang Lang
 kind: music
+theme: heroic-moral
 note: I didn't like this sonata until I heard Lang Lang play this movement.
 music:
   composer: Ludwig van Beethoven

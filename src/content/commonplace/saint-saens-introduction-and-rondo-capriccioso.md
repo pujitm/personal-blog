@@ -2,6 +2,7 @@
 title: Introduction & Rondo Capriccioso
 subtitle: Itzhak Perlman
 kind: music
+theme: romantic-spiritual
 music:
   composer: Camille Saint-Saëns
   work: Introduction and Rondo Capriccioso, Op. 28

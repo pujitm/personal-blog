@@ -4,6 +4,7 @@ title: "Naming Things"
 description: "A short reflection on why naming is so hard."
 pubDate: "Dec 06 2025"
 # heroImage: "/placeholder-hero.jpg"
+theme: romantic-spiritual
 ---
 
 > Alternative title: Rediscovering Connotation vs. Denotation from first principles.

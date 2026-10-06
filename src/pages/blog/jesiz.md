@@ -4,6 +4,7 @@ title: "What I learned from Jesiz"
 description: "Insights from a League of Legends Pro"
 pubDate: "Mar 10 2024"
 # heroImage: "/placeholder-hero.jpg"
+theme: tragic-psychological
 ---
 
 [Jesiz](https://escharts.com/players/jesiz) is a former professional League of Legends player. I don't know Jesiz personally, but when I interacted with him last year through New World (the MMO), he seemed sharper than anyone I'd met, and I learned a lot. Surprisingly, lots of American New World players were dismissive of his ideas and knowledge.

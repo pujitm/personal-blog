@@ -2,6 +2,7 @@
 title: "The Westing Game"
 subtitle: Ellen Raskin
 kind: book
+theme: tragic-psychological
 shelf: favorite
 color: "#2b4c7e"
 images:

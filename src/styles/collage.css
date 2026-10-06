@@ -54,6 +54,59 @@
     font-family: var(--font-serif);
 }
 
+/* --------------------------------------------------------------- themes */
+
+/*
+ * Each theme's name starts as a note in the margin beside its stretch of the
+ * leaf (centered on --x0/--y0, at --f0) and lands as the heading over its
+ * band on the board (left at --xB, in a band --hB tall from --yB, at --fB).
+ */
+.leaf__theme {
+    --xB: var(--xD);
+    --yB: var(--yD);
+    --fB: var(--fD);
+    --hB: var(--hD);
+    --delay: var(--delayD);
+    --t: clamp(0, (var(--order) - var(--delay)) / 0.44, 1);
+    --e: calc(var(--t) * var(--t) * (3 - 2 * var(--t)));
+    --sc: calc(var(--f0) / var(--fB) + (1 - var(--f0) / var(--fB)) * var(--e));
+    position: absolute;
+    left: calc(var(--xB) * 1px);
+    top: calc(var(--yB) * 1px);
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    height: calc(var(--hB) * 1px);
+    margin: 0;
+    font: 600 calc(var(--fB) * 1px) / 1 var(--font-hand);
+    color: var(--ink);
+    transform-origin: 0 50%;
+    translate:
+        calc((var(--x0) - var(--xB)) * (1 - var(--e)) * 1px - 50% * var(--sc) * (1 - var(--e)))
+        calc((var(--y0) - var(--yB) - var(--hB) / 2) * (1 - var(--e)) * 1px);
+    scale: var(--sc);
+    pointer-events: none;
+}
+
+/* A paper tag while it's in the leaf, plain ink once it's a heading. */
+.leaf__theme span {
+    padding: 0.05em 0.45em 0.12em;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--paper) calc((1 - var(--e)) * 100%), transparent);
+    box-shadow: 0 0.12em 0.4em -0.15em rgb(30 15 0 / calc((1 - var(--e)) * 0.45));
+}
+
+@media (max-width: 40rem) {
+    .leaf__theme {
+        --xB: var(--xM);
+        --yB: var(--yM);
+        --fB: var(--fM);
+        --hB: var(--hM);
+        --delay: var(--delayM);
+    }
+}
+
 /* ------------------------------------------------------ pieces and scraps */
 
 .piece {

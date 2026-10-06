@@ -2,6 +2,7 @@
 title: "The Beautiful Risk of Education"
 subtitle: Gert Biesta
 kind: book
+theme: romantic-spiritual
 shelf: reading
 color: "#2f5d62"
 images:

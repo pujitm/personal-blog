@@ -3,13 +3,11 @@
 //
 // The symbol is traced from the reference drawing the workflow downloaded
 // (two strokes: the spiral running out into the stem, and the leaf). Each
-// part of the symbol gets its own material:
-//   eye     one picture where the spiral curls in
-//   heart   the inner turn: sticky notes and index cards
-//   outer   the outer turn and stem: pictures in color order, sheet music
-//           wherever the curve runs flat
-//   leaf    every book, standing up, in color order: the base is a shelf
-// Pieces stay upright and are sized so each part is filled end to end.
+// theme makes one part of it, in the order the themes come:
+//   heroic-moral          the leaf: its outline and the turn of the spiral inside
+//   tragic-psychological  the spiral's outer arc and the stem
+//   romantic-spiritual    the spiral curling in, to the picture at the eye
+// Pieces stay upright and are sized so the line keeps one weight throughout.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -113,9 +111,7 @@ export interface Thing {
     /** Base width and height before fitting. */
     w: number;
     h: number;
-    /** 0-360 for colors; neutrals sort after, by lightness. */
-    hue: number;
-    role: "eye" | "note" | "picture" | "music" | "book";
+    theme: string;
 }
 
 export interface Formed {
@@ -130,14 +126,8 @@ export interface Formed {
 const SCALE = 24; // reference units to world pixels
 const OVERLAP = 0.6;
 
-/**
- * Walks pieces along one part of the symbol at a stroke width of `T`. Each
- * piece stays upright and is sized so it spans the stroke exactly (by its
- * height where the curve runs flat, its width where it runs steep), and of
- * the next few in line the walk takes whichever shape suits the curve there,
- * so nothing ends up tiny or overlong.
- */
-function walk(things: Thing[], pts: Point[], T: number, random: () => number) {
+/** A stroke in world pixels, with what's needed to find a spot along it. */
+function line(pts: Point[]) {
     const P = pts.map((p) => ({ x: p.x * SCALE, y: p.y * SCALE }));
     const cum = lengths(P);
     const L = cum[cum.length - 1];
@@ -154,6 +144,20 @@ function walk(things: Thing[], pts: Point[], T: number, random: () => number) {
             angle: Math.atan2(P[a1].y - P[a0].y, P[a1].x - P[a0].x),
         };
     };
+    return { L, at };
+}
+
+type Line = ReturnType<typeof line>;
+
+/**
+ * Walks the things, in order, along the strokes at a stroke width of `T`,
+ * moving on to the next stroke when one is full. Each piece stays upright
+ * and is sized so it spans the stroke exactly (by its height where the curve
+ * runs flat, its width where it runs steep), and of the next few the walk
+ * takes whichever shape suits the curve there, so nothing ends up tiny or
+ * overlong. Returns where each lands, and whether all fit.
+ */
+function walk(things: Thing[], lines: Line[], T: number) {
     const sized = (thing: Thing, angle: number) => {
         const c = Math.abs(Math.cos(angle));
         const s = Math.abs(Math.sin(angle));
@@ -162,111 +166,147 @@ function walk(things: Thing[], pts: Point[], T: number, random: () => number) {
     };
 
     const queue = [...things];
-    const laid: { thing: Thing; at: Formed }[] = [];
+    const placed: { thing: Thing; stroke: number; distance: number; along: number }[] = [];
+    let stroke = 0;
     let distance = 0;
     let previous = 0;
     while (queue.length) {
-        const angle = at(distance + T * 0.5).angle;
+        const here = lines[stroke];
+        const angle = here.at(distance + T * 0.5).angle;
         const misfit = (thing: Thing) => Math.abs(Math.log(sized(thing, angle).along / (T * 1.35)));
         const next = queue.slice(0, 4).reduce((best, thing) => (misfit(thing) < misfit(best) - 0.2 ? thing : best));
-        queue.splice(queue.indexOf(next), 1);
         const { along } = sized(next, angle);
-        distance += previous ? ((previous + along) / 2) * OVERLAP : along * 0.4;
+        const step = previous ? ((previous + along) / 2) * OVERLAP : along * 0.4;
+        if (distance + step + along * 0.4 > here.L && stroke < lines.length - 1) {
+            stroke++;
+            distance = 0;
+            previous = 0;
+            continue;
+        }
+        queue.splice(queue.indexOf(next), 1);
+        distance += step;
         previous = along;
-        const p = at(distance);
-        const { scale } = sized(next, p.angle);
-        const normal = p.angle + Math.PI / 2;
-        const drift = (random() - 0.5) * T * 0.12;
-        laid.push({
-            thing: next,
-            at: {
-                x: p.x + Math.cos(normal) * drift,
-                y: p.y + Math.sin(normal) * drift,
-                w: next.w * scale,
-                h: next.h * scale,
-                rot: (random() - 0.5) * 7,
-                z: 0,
-            },
-        });
+        placed.push({ thing: next, stroke, distance, along });
     }
-    return { laid, used: distance + previous * 0.4, length: L };
+    const fits = stroke < lines.length - 1 || distance + previous * 0.4 <= lines[stroke].L;
+    return { placed, fits, sized };
 }
 
-/** Finds the stroke width at which one part's pieces fill it exactly. */
-function fill(things: Thing[], pts: Point[], seed: number) {
+/** The widest stroke at which a part's things all fit along it. */
+function widest(things: Thing[], lines: Line[]) {
     let lo = 20;
     let hi = 400;
     for (let i = 0; i < 28; i++) {
         const mid = (lo + hi) / 2;
-        const { used, length } = walk(things, pts, mid, rng(seed));
-        if (used > length) hi = mid;
-        else lo = mid;
+        if (walk(things, lines, mid).fits) lo = mid;
+        else hi = mid;
     }
-    return walk(things, pts, lo, rng(seed)).laid;
+    return lo;
 }
 
-const byHue = (things: Thing[]) => [...things].sort((a, b) => a.hue - b.hue);
+/**
+ * Lays each part's things along its strokes, each as wide as it can be but
+ * no more than a little wider than the narrowest part (so the line keeps
+ * about one weight), then spaces each stroke's pieces out to reach its end.
+ */
+function fill(parts: { things: Thing[]; lines: Line[] }[], random: () => number) {
+    const widths = parts.map((part) => (part.things.length ? widest(part.things, part.lines) : 0));
+    const narrowest = Math.min(...widths.filter(Boolean));
+    const out = new Map<string, Formed>();
+    const T = widths.map((w) => Math.min(w, narrowest * 1.18));
+    parts.forEach((part, k) => {
+        if (!part.things.length) return;
+        const { placed, sized } = walk(part.things, part.lines, T[k]);
+        part.lines.forEach((here, s) => {
+            const mine = placed.filter((p) => p.stroke === s);
+            if (!mine.length) return;
+            const last = mine[mine.length - 1];
+            const stretch = Math.max(1, here.L / (last.distance + last.along * 0.4));
+            for (const { thing, distance } of mine) {
+                const p = here.at(distance * stretch);
+                const { scale } = sized(thing, p.angle);
+                const normal = p.angle + Math.PI / 2;
+                const drift = (random() - 0.5) * T[k] * 0.12;
+                out.set(thing.id, {
+                    x: p.x + Math.cos(normal) * drift,
+                    y: p.y + Math.sin(normal) * drift,
+                    w: thing.w * scale,
+                    h: thing.h * scale,
+                    rot: (random() - 0.5) * 7,
+                    z: 0,
+                });
+            }
+        });
+    });
+    return { formed: out, T };
+}
 
 /**
- * Forms the symbol. Returns where each thing sits and the size of the world
- * it spans, or nothing if the reference drawing isn't available.
+ * Forms the symbol from the things, theme by theme (the last thing sits at
+ * the eye). Returns where each sits, where each theme's label goes, and the
+ * size of the world they span; or nothing if the reference drawing isn't
+ * available.
  */
 export function formSymbol(things: Thing[]) {
     const traced = strokes();
-    if (!traced) return undefined;
+    if (!traced || things.length < 2) return undefined;
     const [spiral, leaf] = traced;
-
-    const eye = things.find((t) => t.role === "eye");
-    const pictures = byHue(things.filter((t) => t.role === "picture"));
-    const music = things.filter((t) => t.role === "music");
-    const notes = things.filter((t) => t.role === "note");
-    const books = byHue(things.filter((t) => t.role === "book"));
-
-    // One line from the tip of the stem around the spiral and in: pictures
-    // in color order, with notes and sheet music spread evenly through them.
-    // The curve picks which of the next few suits it, so shapes mix in.
-    const spread = (base: Thing[], extra: Thing[]) => {
-        const out = [...base];
-        extra.forEach((thing, i) => out.splice(Math.round(((i + 0.5) * out.length) / extra.length) + 0, 0, thing));
-        return out;
-    };
-    const line = spread(spread(pictures, notes), music);
+    const eye = things[things.length - 1];
+    const along = things.slice(0, -1);
+    const themes = [...new Set(things.map((thing) => thing.theme))];
 
     // Distances along the spiral stroke (reference units): it curls in the
-    // middle (0-9), then turns twice and runs out into the stem. The leaf
-    // joins the spiral at both ends, so trim those.
+    // middle (0-9), turns, and runs out into the stem (to ~155). The leaf
+    // leaves the spiral at 102 and rejoins it at 69. Ends are trimmed where
+    // strokes meet.
     const leafLength = lengths(leaf).at(-1)!;
-    const parts = [
-        { things: line, pts: cut(spiral, 9, 999).reverse(), seed: 1 },
-        { things: books, pts: cut(leaf, 4, leafLength - 3), seed: 3 },
+    const regions = [
+        // The leaf: its outline, then back up the turn of the spiral inside it.
+        [cut(leaf, 2, leafLength - 3.5), cut(spiral, 72, 100)],
+        // Over the top and out along the stem.
+        [cut(spiral, 101.5, 999)],
+        // Curling in from the bottom of the leaf to the eye.
+        [cut(spiral, 9, 66).reverse()],
     ];
+    const parts = themes.map((theme, k) => ({
+        theme,
+        things: along.filter((thing) => thing.theme === theme),
+        lines: regions[Math.min(k, regions.length - 1)].map(line),
+    }));
 
-    const formed = new Map<string, Formed>();
+    const { formed, T } = fill(parts, rng(1));
     let z = 10;
-    for (const part of parts) {
-        for (const { thing, at } of fill(part.things, part.pts, part.seed)) {
-            formed.set(thing.id, { ...at, z: z++ });
-        }
-    }
-    if (eye) {
-        const curl = cut(spiral, 0, 9);
-        const x = (curl.reduce((s, p) => s + p.x, 0) / curl.length) * SCALE;
-        const y = (curl.reduce((s, p) => s + p.y, 0) / curl.length) * SCALE;
-        formed.set(eye.id, { x, y, w: eye.w * 1.5, h: eye.h * 1.5, rot: -2, z: z++ });
-    }
+    for (const thing of along) formed.get(thing.id)!.z = z++;
+    const curl = cut(spiral, 0, 9);
+    const cx = (curl.reduce((s, p) => s + p.x, 0) / curl.length) * SCALE;
+    const cy = (curl.reduce((s, p) => s + p.y, 0) / curl.length) * SCALE;
+    formed.set(eye.id, { x: cx, y: cy, w: eye.w * 1.5, h: eye.h * 1.5, rot: -2, z: z++ });
+
+    // Each theme's label goes just outside the middle of its part; the
+    // innermost one's, inside the curl over the eye.
+    const eyeAt = formed.get(eye.id)!;
+    const labels = parts.map(({ theme, lines }, k) => {
+        if (k === regions.length - 1) return { theme, x: cx, y: cy - eyeAt.h / 2 - T[k] * 0.45 };
+        const longest = lines.reduce((a, b) => (b.L > a.L ? b : a));
+        const mid = longest.at(longest.L / 2);
+        const dx = mid.x - cx;
+        const dy = mid.y - cy;
+        const r = Math.hypot(dx, dy) || 1;
+        return { theme, x: mid.x + (dx / r) * T[k] * 1.15, y: mid.y + (dy / r) * T[k] * 1.15 };
+    });
 
     // Shift everything to start at a margin from the origin.
     const all = [...formed.values()];
     const margin = 60;
     const left = Math.min(...all.map((f) => f.x - f.w / 2)) - margin;
     const top = Math.min(...all.map((f) => f.y - f.h / 2)) - margin;
-    for (const f of all) {
+    for (const f of [...all, ...labels]) {
         f.x -= left;
         f.y -= top;
     }
     const width = Math.max(...all.map((f) => f.x + f.w / 2)) + margin;
     const height = Math.max(...all.map((f) => f.y + f.h / 2)) + margin;
-    return { formed, width, height };
+    return { formed, labels, T: Math.min(...T.filter(Boolean)), width, height };
 }
 
 // ---------------------------------------------------------------- the board
@@ -280,12 +320,26 @@ export interface Settled {
 
 /**
  * Masonry board across the world's width: each thing drops into the
- * shortest column (wide things span two), scaled to fit.
+ * shortest column (wide things span two), scaled to fit. Each section starts
+ * a new band under a heading of the given height.
  */
-export function board(sizes: { w: number; h: number; wide: boolean }[], width: number, columns: number, gap: number) {
+export function board(
+    sizes: { w: number; h: number; wide: boolean }[],
+    width: number,
+    columns: number,
+    gap: number,
+    sections: { start: number; heading: number }[] = [],
+) {
     const col = (width - gap * (columns + 1)) / columns;
     const heights: number[] = Array(columns).fill(gap);
-    const settled = sizes.map(({ w, h, wide }): Settled => {
+    const headings: number[] = [];
+    const settled = sizes.map(({ w, h, wide }, i): Settled => {
+        const section = sections.find((s) => s.start === i);
+        if (section) {
+            const level = Math.max(...heights) + (headings.length ? gap * 3 : 0);
+            headings.push(level);
+            heights.fill(level + section.heading);
+        }
         const span = wide ? Math.min(2, columns) : 1;
         let start = 0;
         let lowest = Infinity;
@@ -302,5 +356,5 @@ export function board(sizes: { w: number; h: number; wide: boolean }[], width: n
         for (let c = start; c < start + span; c++) heights[c] = lowest + height + gap;
         return { x: gap + start * (col + gap) + span_w / 2, y: lowest + height / 2, scale };
     });
-    return { settled, height: Math.max(...heights) };
+    return { settled, headings, height: Math.max(...heights) };
 }

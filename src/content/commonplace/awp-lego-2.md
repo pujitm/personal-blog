@@ -2,6 +2,7 @@
 title: AWP on awp_lego_2
 subtitle: "Counter-Strike: Global Offensive"
 kind: game
+theme: heroic-moral
 note: awp_lego_2 is my favorite community map.
 shape: 4x2
 images:

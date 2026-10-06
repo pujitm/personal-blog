@@ -4,6 +4,7 @@ title: "A better take-home interview"
 description: "A reflection on the take-home exercise I created at Kachow."
 pubDate: "Jul 20 2020"
 # heroImage: "/placeholder-hero.jpg"
+theme: tragic-psychological
 ---
 
 ## Interviewing software development candidates is tough.

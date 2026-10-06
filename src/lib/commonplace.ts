@@ -1,6 +1,6 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { works } from "../data/works";
-import { BOARD_ORDER } from "../data/collage";
+import { EYE, THEMES, type Theme } from "../data/collage";
 import { imageInfo } from "./images";
 import type { Form } from "./leaf";
 
@@ -14,6 +14,7 @@ export type Music = NonNullable<EntryData["music"]>;
 export interface CollageItem {
     id: string;
     kind: ItemKind;
+    theme: Theme;
     title: string;
     subtitle?: string;
     note?: string;
@@ -50,6 +51,7 @@ function fromEntry(entry: Entry): CollageItem {
     return {
         id: entry.id,
         kind: data.kind,
+        theme: data.theme,
         title: data.title,
         subtitle: data.subtitle,
         note: data.note,
@@ -63,18 +65,15 @@ function fromEntry(entry: Entry): CollageItem {
     };
 }
 
-const rank = (kind: string) => BOARD_ORDER.indexOf(kind as (typeof BOARD_ORDER)[number]);
+const themeRank = (theme: Theme) => THEMES.findIndex((t) => t.id === theme);
+const kindRank = (kind: ItemKind) => Object.keys(KIND_LABELS).indexOf(kind);
 
-/** Things I love, grouped the way the board settles. */
+/** Things I love, by theme. */
 export async function getInfluences(): Promise<CollageItem[]> {
     const entries = (await getCollection("commonplace"))
         .filter((entry) => !entry.data.draft)
-        .sort(
-            (a, b) =>
-                rank(a.data.kind) - rank(b.data.kind) ||
-                (a.data.order ?? Infinity) - (b.data.order ?? Infinity),
-        );
-    return entries.map(fromEntry);
+        .map(fromEntry);
+    return entries.sort((a, b) => themeRank(a.theme) - themeRank(b.theme) || kindRank(a.kind) - kindRank(b.kind));
 }
 
 /** Things I've made: works, talks and blog posts, newest first. */
@@ -90,6 +89,8 @@ export function getOutput(): CollageItem[] {
             (post): CollageItem => ({
                 id: post.url,
                 kind: "writing",
+                // Posts without one go with the first theme.
+                theme: post.frontmatter.theme ?? THEMES[0].id,
                 title: post.frontmatter.title,
                 description: post.frontmatter.description || undefined,
                 date: new Date(post.frontmatter.pubDate),
@@ -105,6 +106,7 @@ export function getOutput(): CollageItem[] {
         return {
             id: href,
             kind: work.link?.href.startsWith("/") ? "writing" : "work",
+            theme: work.theme,
             title: work.title,
             description: work.description,
             date: work.date,
@@ -138,19 +140,74 @@ function formFor(item: CollageItem): Form {
     return "image";
 }
 
-/** Everything on the collage, in board order. */
-export async function getCollage() {
-    const influences = await getInfluences();
-    const output = getOutput();
-    const everything = [...influences, ...output];
-    const items: Laid[] = await Promise.all(
+const hexRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
+
+/** A thing's color: its picture's, else the one noted for it. */
+export const colorOf = (laid: Laid): [number, number, number] =>
+    laid.color ?? (laid.item.color ? hexRgb(laid.item.color) : [240, 236, 226]);
+
+/** Hue for colorful things; neutrals sort after them, by lightness. */
+function hueOf([r, g, b]: [number, number, number]) {
+    const [R, G, B] = [r / 255, g / 255, b / 255];
+    const max = Math.max(R, G, B);
+    const min = Math.min(R, G, B);
+    const l = (max + min) / 2;
+    const d = max - min;
+    const s = d === 0 ? 0 : l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (s < 0.18) return 400 + l * 100;
+    const h = max === R ? (G - B) / d + (G < B ? 6 : 0) : max === G ? (B - R) / d + 2 : (R - G) / d + 4;
+    return h * 60;
+}
+
+/** Slips each of `extra` evenly in among `base`. */
+function spread<T>(base: T[], extra: T[]) {
+    const out = [...base];
+    extra.forEach((thing, i) => out.splice(Math.round(((i + 0.5) * out.length) / extra.length), 0, thing));
+    return out;
+}
+
+/**
+ * One theme, in the order it runs along the symbol and settles on the board:
+ * pictures and covers together by color, with notes and sheet music spread
+ * evenly through them so no one medium bunches up, and the eye last.
+ */
+function arrange(group: Laid[]) {
+    const note = (laid: Laid) => laid.form === "card" || laid.form === "square";
+    const rest = group.filter((laid) => laid.item.id !== EYE);
+    const pictures = rest
+        .filter((laid) => !laid.item.music && !note(laid))
+        .sort((a, b) => hueOf(colorOf(a)) - hueOf(colorOf(b)));
+    const notes = rest.filter(note);
+    const music = rest.filter((laid) => laid.item.music);
+    return [...spread(spread(pictures, notes), music), ...group.filter((laid) => laid.item.id === EYE)];
+}
+
+async function build() {
+    const everything = [...(await getInfluences()), ...getOutput()];
+    const laid: Laid[] = await Promise.all(
         everything.map(async (item) => ({
             item,
             form: formFor(item),
             ...(item.images[0] ? await imageInfo(item.images[0].src, item.images[0].fallback) : {}),
         })),
     );
-    return { influences, output, items, everything };
+    const items = THEMES.flatMap((theme) => arrange(laid.filter((l) => l.item.theme === theme.id)));
+    const mine = (item: CollageItem) => item.kind === "work" || item.kind === "writing";
+    return {
+        /** Everything, by theme, in collage order. */
+        items,
+        /** The things I love, in the same order. */
+        influences: items.map((l) => l.item).filter((item) => !mine(item)),
+    };
+}
+
+let built: ReturnType<typeof build> | undefined;
+
+/** Everything on the collage, by theme, in the order it runs. */
+export function getCollage() {
+    // Every page needs it (for credits), so work it out once per build.
+    if (!import.meta.env.PROD) return build();
+    return (built ??= build());
 }
 
 export function formatDate(date: Date) {

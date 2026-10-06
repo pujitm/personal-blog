@@ -2,6 +2,7 @@
 title: Moonlight Sonata
 subtitle: Daniel Barenboim
 kind: music
+theme: tragic-psychological
 note: All three movements, and how they fit together.
 shape: 6x3
 music:

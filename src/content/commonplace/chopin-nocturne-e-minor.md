@@ -2,6 +2,7 @@
 title: Nocturne in E minor
 subtitle: Brigitte Engerer
 kind: music
+theme: tragic-psychological
 note: The one he wrote after his sister died.
 music:
   composer: Frédéric Chopin

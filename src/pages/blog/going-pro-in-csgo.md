@@ -4,6 +4,7 @@ title: "How to go pro in CS:GO"
 description: "A noob's perspective."
 pubDate: "Sep 17 2022"
 # heroImage: "/placeholder-hero.jpg"
+theme: heroic-moral
 ---
 
 # How to Go Pro in Counter Strike: Global Offensive

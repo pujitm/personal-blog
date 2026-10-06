@@ -2,6 +2,7 @@
 title: "Ramayana: The Legend of Prince Rama"
 subtitle: 1992
 kind: film
+theme: heroic-moral
 note: A formative childhood movie. I think its aesthetic expression has aged well.
 shape: 4x3
 images:

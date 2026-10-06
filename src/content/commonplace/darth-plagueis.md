@@ -2,6 +2,7 @@
 title: "Star Wars: Darth Plagueis"
 subtitle: James Luceno
 kind: book
+theme: tragic-psychological
 shelf: reading
 color: "#111111"
 images:

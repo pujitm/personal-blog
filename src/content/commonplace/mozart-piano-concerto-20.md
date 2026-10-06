@@ -2,6 +2,7 @@
 title: Piano Concerto No. 20
 subtitle: Mitsuko Uchida
 kind: music
+theme: tragic-psychological
 music:
   composer: Wolfgang Amadeus Mozart
   work: Piano Concerto No. 20 in D minor, K. 466

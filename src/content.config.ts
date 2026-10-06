@@ -1,5 +1,6 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
+import { THEME_IDS } from "./data/collage";
 
 const recording = z.object({
     /** YouTube video id. */
@@ -36,6 +37,8 @@ const commonplace = defineCollection({
     schema: z.object({
         title: z.string(),
         kind: z.enum(["music", "anime", "film", "book", "game", "character", "image"]),
+        /** Where it sits on the collage: heroic-moral, tragic-psychological or romantic-spiritual. */
+        theme: z.enum(THEME_IDS),
         /** Performer, author, year: whatever goes under the title. */
         subtitle: z.coerce.string().optional(),
         /** A line in the margin, in my own words. */
@@ -47,8 +50,6 @@ const commonplace = defineCollection({
         shape: z.string().regex(/^\d+x\d+$/).optional(),
         /** Book shelf. */
         shelf: z.enum(["reading", "favorite"]).optional(),
-        /** Lower sorts first. Entries without one keep file order. */
-        order: z.number().optional(),
         music: z
             .object({
                 composer: z.string(),

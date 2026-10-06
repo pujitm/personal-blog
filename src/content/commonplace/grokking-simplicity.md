@@ -2,6 +2,7 @@
 title: "Grokking Simplicity"
 subtitle: Eric Normand
 kind: book
+theme: romantic-spiritual
 shelf: reading
 color: "#c2a83e"
 images:

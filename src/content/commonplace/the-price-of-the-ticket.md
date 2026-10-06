@@ -2,6 +2,7 @@
 title: "The Price of the Ticket"
 subtitle: James Baldwin
 kind: book
+theme: heroic-moral
 shelf: favorite
 color: "#2a2622"
 images:

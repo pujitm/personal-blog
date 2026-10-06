@@ -1,37 +1,24 @@
 ---
 // The collage. The Hidden Leaf is built out of the things themselves, in
-// their own colors: books stand along the leaf like a shelf, pictures and
-// sheet music run around the spiral, notes curl into its heart. Scrolling
-// breaks the spell and everything settles into a board, grouped by kind.
-// Hover anything to lift it; click to open it or hear it.
+// their own colors, theme after theme along one line: the heroic-moral down
+// the stem and round the leaf, the tragic-psychological back along the outer
+// turn, the romantic-spiritual curling in to the eye. Scrolling breaks the
+// spell and everything settles into a board, one band per theme. Hover
+// anything to lift it; click to open it or hear it.
 import CollagePiece from "./CollagePiece.astro";
-import { type Laid } from "../../lib/commonplace";
+import { colorOf, type Laid } from "../../lib/commonplace";
 import { board, formSymbol, type Thing } from "../../lib/leaf";
-import { EYE } from "../../data/collage";
+import { themeLabel } from "../../data/collage";
 import "../../styles/collage.css";
 
 export interface Props {
-    /** Everything, in the order the board settles into. */
+    /** Everything, by theme, in the order it runs (the last sits at the eye). */
     items: Laid[];
 }
 
 const { items } = Astro.props;
 
-const hexRgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
-/** Hue for colorful things; neutrals sort after them by lightness. */
-const hueOf = ([r, g, b]: [number, number, number]) => {
-    const [R, G, B] = [r / 255, g / 255, b / 255];
-    const max = Math.max(R, G, B);
-    const min = Math.min(R, G, B);
-    const l = (max + min) / 2;
-    const d = max - min;
-    const s = d === 0 ? 0 : l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (s < 0.18) return 400 + l * 100;
-    const h = max === R ? (G - B) / d + (G < B ? 6 : 0) : max === G ? (B - R) / d + 2 : (R - G) / d + 4;
-    return h * 60;
-};
-
-// Base sizes, before each part of the symbol scales its pieces to fit.
+// Base sizes, before the symbol scales its pieces to fit.
 const AREA = 9000;
 const SIZE: Record<string, [number, number]> = {
     music: [180, 64],
@@ -55,24 +42,24 @@ const things: Thing[] = items.map((laid) => {
         w = Math.sqrt(AREA * aspect);
         h = AREA / w;
     }
-    // A cover's own color when it's been downloaded, else the one noted for it.
-    const color = laid.color ?? (form === "cover" ? hexRgb(item.color ?? "#777777") : [240, 236, 226]);
-    const role: Thing["role"] =
-        item.id === EYE ? "eye" : item.music ? "music" : item.kind === "book" ? "book" : form === "card" || form === "square" ? "note" : "picture";
-    return { id: item.id, form: laid.form, w, h, hue: hueOf(color), role };
+    return { id: item.id, form: laid.form, w, h, theme: item.theme };
 });
 
 const symbol = formSymbol(things);
 const width = symbol?.width ?? 1000;
 const height = symbol?.height ?? 1000;
 
+// The board: a band per theme, each under its heading.
 const sizes = items.map((laid) => {
     const f = symbol?.formed.get(laid.item.id);
     return { w: f?.w ?? 100, h: f?.h ?? 100, wide: laid.form === "wide" };
 });
-const desk = board(sizes, width, 6, width * 0.016);
-const phone = board(sizes, width, 2, width * 0.024);
+const starts = items.flatMap((laid, i) => (i === 0 || items[i - 1].item.theme !== laid.item.theme ? [i] : []));
+const HEADING = { desk: width * 0.052, phone: width * 0.15 };
+const desk = board(sizes, width, 6, width * 0.016, starts.map((start) => ({ start, heading: HEADING.desk })));
+const phone = board(sizes, width, 2, width * 0.024, starts.map((start) => ({ start, heading: HEADING.phone })));
 
+const hexRgb = (hex: string) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 const ink = (hex: string) => {
     const [r, g, b] = hexRgb(hex).map((c) => c / 255);
     return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55 ? "#1c1a17" : "#f7f2e8";
@@ -84,13 +71,15 @@ const PAPER: Record<string, string> = {
     image: "#fbfaf5",
     wide: "#1a1411",
 };
+const toHex = (rgb: number[]) => `#${rgb.map((c) => Math.round(c).toString(16).padStart(2, "0")).join("")}`;
 
 const pieces = items.map((laid, i) => {
     const f = symbol?.formed.get(laid.item.id) ?? { x: width / 2, y: height / 2, w: 100, h: 100, rot: 0, z: 1 };
     const d = desk.settled[i];
     const p = phone.settled[i];
     const form = laid.item.music ? "music" : laid.form;
-    const paper = form === "cover" ? laid.item.color ?? "#3b3a36" : PAPER[form] ?? "#fbfaf5";
+    // Covers show their own color while the picture loads.
+    const paper = form === "cover" ? toHex(colorOf(laid)) : PAPER[form] ?? "#fbfaf5";
     const vars: Record<string, string | number> = {
         "--x0": f.x.toFixed(1),
         "--y0": f.y.toFixed(1),
@@ -110,13 +99,48 @@ const pieces = items.map((laid, i) => {
         "--paper": paper,
         "--ink": ink(paper),
     };
+    return { laid, style: css(vars) };
+});
+
+// Each theme's name: a note in the margin beside its stretch of the leaf,
+// then the heading over its band on the board.
+const LABEL = { formed: (symbol?.T ?? 100) * 0.34, desk: HEADING.desk * 0.62, phone: HEADING.phone * 0.6 };
+const labels = starts.map((start, k) => {
+    const theme = items[start].item.theme;
+    const text = themeLabel(theme);
+    // Keep the note inside the world, so it isn't cut off on a narrow screen.
+    const half = text.length * LABEL.formed * 0.3;
+    const at = symbol?.labels.find((label) => label.theme === theme) ?? { x: width / 2, y: height / 2 };
+    const x = Math.min(width - half - 10, Math.max(half + 10, at.x));
+    const y = Math.min(height - LABEL.formed, Math.max(LABEL.formed, at.y));
+    const gapD = width * 0.016;
+    const gapM = width * 0.024;
     return {
-        laid,
-        style: Object.entries(vars)
-            .map(([k, v]) => `${k}:${v}`)
-            .join(";"),
+        theme,
+        text,
+        style: css({
+            "--x0": x.toFixed(1),
+            "--y0": y.toFixed(1),
+            "--f0": LABEL.formed.toFixed(1),
+            "--xD": gapD.toFixed(1),
+            "--yD": desk.headings[k].toFixed(1),
+            "--fD": LABEL.desk.toFixed(1),
+            "--hD": HEADING.desk.toFixed(1),
+            "--xM": gapM.toFixed(1),
+            "--yM": phone.headings[k].toFixed(1),
+            "--fM": LABEL.phone.toFixed(1),
+            "--hM": HEADING.phone.toFixed(1),
+            "--delayD": ((desk.headings[k] / desk.height) * 0.5).toFixed(3),
+            "--delayM": ((phone.headings[k] / phone.height) * 0.5).toFixed(3),
+        }),
     };
 });
+
+function css(vars: Record<string, string | number>) {
+    return Object.entries(vars)
+        .map(([k, v]) => `${k}:${v}`)
+        .join(";");
+}
 ---
 
 <section
@@ -129,7 +153,20 @@ const pieces = items.map((laid, i) => {
 >
     <div class="leaf__stage">
         <div class="leaf__world" style={`width:${width.toFixed(0)}px;height:${height.toFixed(0)}px`}>
-            {pieces.map((piece) => <CollagePiece laid={piece.laid} style={piece.style} />)}
+            {
+                labels.map((label) => (
+                    <>
+                        <h3 class="leaf__theme" data-theme={label.theme} style={label.style}>
+                            <span>{label.text}</span>
+                        </h3>
+                        {pieces
+                            .filter((piece) => piece.laid.item.theme === label.theme)
+                            .map((piece) => (
+                                <CollagePiece laid={piece.laid} style={piece.style} />
+                            ))}
+                    </>
+                ))
+            }
         </div>
         <p class="leaf__hint" aria-hidden="true">scroll, and it all falls into place</p>
     </div>

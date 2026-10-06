@@ -2,6 +2,7 @@
 title: Grande valse brillante
 subtitle: Arthur Rubinstein
 kind: music
+theme: romantic-spiritual
 note: I would love this played at my funeral.
 music:
   composer: Frédéric Chopin

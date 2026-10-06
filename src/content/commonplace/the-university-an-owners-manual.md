@@ -2,6 +2,7 @@
 title: "The University: An Owner's Manual"
 subtitle: Henry Rosovsky
 kind: book
+theme: heroic-moral
 shelf: reading
 color: "#1e3a5f"
 images:
