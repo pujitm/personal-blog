@@ -125,6 +125,8 @@ export interface Laid {
     aspect?: number;
     /** A transparent cut-out rather than a rectangle. */
     alpha?: boolean;
+    /** Dominant color of its picture. */
+    color?: [number, number, number];
 }
 
 /** What each thing is made of. */

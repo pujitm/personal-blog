@@ -1,13 +1,13 @@
 ---
-// The collage. It starts scattered, with the Hidden Leaf cut through it:
-// everything inside the symbol is warm, everything outside cool, so the shape
-// slices across whatever lies on its edge. Scrolling breaks the spell: pieces
-// straighten up, settle into a board grouped by kind, and show their true
-// colors. Hover anything to lift it; click to open it or hear it.
+// The collage. The Hidden Leaf is built out of the things themselves, in
+// their own colors: books stand along the leaf like a shelf, pictures and
+// sheet music run around the spiral, notes curl into its heart. Scrolling
+// breaks the spell and everything settles into a board, grouped by kind.
+// Hover anything to lift it; click to open it or hear it.
 import CollagePiece from "./CollagePiece.astro";
 import { type Laid } from "../../lib/commonplace";
-import { board, insigniaMask, rng, scatter } from "../../lib/leaf";
-import { COOL, FEATURED, TYPE_SCRAPS, WARM } from "../../data/collage";
+import { board, formSymbol, type Thing } from "../../lib/leaf";
+import { EYE } from "../../data/collage";
 import "../../styles/collage.css";
 
 export interface Props {
@@ -16,23 +16,63 @@ export interface Props {
 }
 
 const { items } = Astro.props;
-const { things, scraps } = scatter(items.map((laid) => ({ ...laid, featured: FEATURED.includes(laid.item.id) })));
-const at = new Map(things.map(({ thing, at }) => [thing.item.id, at]));
-const sizes = items.map((laid) => {
-    const a = at.get(laid.item.id)!;
-    return { w: a.w, h: a.h, wide: laid.form === "wide" };
+
+const hexRgb = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
+/** Hue for colorful things; neutrals sort after them by lightness. */
+const hueOf = ([r, g, b]: [number, number, number]) => {
+    const [R, G, B] = [r / 255, g / 255, b / 255];
+    const max = Math.max(R, G, B);
+    const min = Math.min(R, G, B);
+    const l = (max + min) / 2;
+    const d = max - min;
+    const s = d === 0 ? 0 : l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (s < 0.18) return 400 + l * 100;
+    const h = max === R ? (G - B) / d + (G < B ? 6 : 0) : max === G ? (B - R) / d + 2 : (R - G) / d + 4;
+    return h * 60;
+};
+
+// Base sizes, before each part of the symbol scales its pieces to fit.
+const AREA = 9000;
+const SIZE: Record<string, [number, number]> = {
+    music: [180, 64],
+    wide: [205, 72],
+    cover: [72, 106],
+    card: [116, 77],
+    square: [84, 84],
+};
+
+const things: Thing[] = items.map((laid) => {
+    const { item } = laid;
+    const form = item.music ? "music" : laid.form;
+    let [w, h] = SIZE[form] ?? [0, 0];
+    if (form === "image") {
+        const aspect = Math.min(1.9, Math.max(0.62, (laid.aspect ?? 1.33) * (item.images.length === 2 ? 2 : 1)));
+        w = Math.sqrt(AREA * aspect);
+        h = AREA / w;
+    }
+    const color = form === "cover" ? hexRgb(item.color ?? "#777777") : laid.color ?? [240, 236, 226];
+    const role: Thing["role"] =
+        item.id === EYE ? "eye" : item.music ? "music" : item.kind === "book" ? "book" : form === "card" || form === "square" ? "note" : "picture";
+    return { id: item.id, form: laid.form, w, h, hue: hueOf(color), role };
 });
-const desk = board(sizes, 6, 16);
-const phone = board(sizes, 2, 24);
-const mask = insigniaMask();
+
+const symbol = formSymbol(things);
+const width = symbol?.width ?? 1000;
+const height = symbol?.height ?? 1000;
+
+const sizes = items.map((laid) => {
+    const f = symbol?.formed.get(laid.item.id);
+    return { w: f?.w ?? 100, h: f?.h ?? 100, wide: laid.form === "wide" };
+});
+const desk = board(sizes, width, 6, width * 0.016);
+const phone = board(sizes, width, 2, width * 0.024);
 
 const ink = (hex: string) => {
-    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const [r, g, b] = hexRgb(hex).map((c) => c / 255);
     return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55 ? "#1c1a17" : "#f7f2e8";
 };
-const pick = <T,>(list: T[], r: () => number) => list[Math.floor(r() * list.length)];
-const TRUE_PAPER: Record<string, string> = {
-    music: "#f7f1e1",
+const PAPER: Record<string, string> = {
+    music: "#efe3c6",
     card: "#fdfcf8",
     square: "#f6e27a",
     image: "#fbfaf5",
@@ -40,38 +80,29 @@ const TRUE_PAPER: Record<string, string> = {
 };
 
 const pieces = items.map((laid, i) => {
-    const a = at.get(laid.item.id)!;
+    const f = symbol?.formed.get(laid.item.id) ?? { x: width / 2, y: height / 2, w: 100, h: 100, rot: 0, z: 1 };
     const d = desk.settled[i];
     const p = phone.settled[i];
-    const r = rng(i * 7919 + 11);
     const form = laid.item.music ? "music" : laid.form;
-    const truth = form === "cover" ? laid.item.color ?? "#3b3a36" : TRUE_PAPER[form] ?? "#fbfaf5";
-    const warm = pick(WARM.papers, r);
-    const cool = pick(COOL.papers, r);
-    const vars = {
-        "--x0": a.x.toFixed(1),
-        "--y0": a.y.toFixed(1),
-        "--w": a.w.toFixed(1),
-        "--h": a.h.toFixed(1),
-        "--r0": a.rot.toFixed(1),
-        "--z": a.z,
-        "--dxD": (d.x - a.x).toFixed(1),
-        "--dyD": (d.y - a.y).toFixed(1),
+    const paper = form === "cover" ? laid.item.color ?? "#3b3a36" : PAPER[form] ?? "#fbfaf5";
+    const vars: Record<string, string | number> = {
+        "--x0": f.x.toFixed(1),
+        "--y0": f.y.toFixed(1),
+        "--w": f.w.toFixed(1),
+        "--h": f.h.toFixed(1),
+        "--r0": f.rot.toFixed(1),
+        "--z": f.z,
+        "--dxD": (d.x - f.x).toFixed(1),
+        "--dyD": (d.y - f.y).toFixed(1),
         "--sD": d.scale.toFixed(3),
-        "--dxM": (p.x - a.x).toFixed(1),
-        "--dyM": (p.y - a.y).toFixed(1),
+        "--dxM": (p.x - f.x).toFixed(1),
+        "--dyM": (p.y - f.y).toFixed(1),
         "--sM": p.scale.toFixed(3),
         // Things near the top of the board settle first, like pages landing.
-        "--delayD": ((d.y / desk.height) * 0.5 + r() * 0.06).toFixed(3),
-        "--delayM": ((p.y / phone.height) * 0.5 + r() * 0.06).toFixed(3),
-        "--true": truth,
-        "--true-ink": ink(truth),
-        "--warm": warm,
-        "--warm-ink": ink(warm),
-        "--cool": cool,
-        "--cool-ink": ink(cool),
-        "--tw": `${pick(WARM.tints, r)}deg`,
-        "--tc": `${pick(COOL.tints, r)}deg`,
+        "--delayD": ((d.y / desk.height) * 0.5 + (i % 7) * 0.008).toFixed(3),
+        "--delayM": ((p.y / phone.height) * 0.5 + (i % 7) * 0.008).toFixed(3),
+        "--paper": paper,
+        "--ink": ink(paper),
     };
     return {
         laid,
@@ -80,68 +111,19 @@ const pieces = items.map((laid, i) => {
             .join(";"),
     };
 });
-
-const paperScraps = scraps.map((s, i) => {
-    const r = rng(i * 104729 + 3);
-    const kind = pick(["paper", "paper", "paper", "paper", "news", "graph", "dots", "type", "paper"], r);
-    const warm = pick(WARM.papers, r);
-    const cool = pick(COOL.papers, r);
-    const corners = Array.from({ length: 4 }, () => (r() * 7).toFixed(1));
-    return {
-        kind,
-        word: kind === "type" ? pick(TYPE_SCRAPS, r) : undefined,
-        style: [
-            `--x0:${s.x.toFixed(1)}`,
-            `--y0:${s.y.toFixed(1)}`,
-            `--w:${s.w.toFixed(1)}`,
-            `--h:${s.h.toFixed(1)}`,
-            `--r0:${s.rot.toFixed(1)}`,
-            `--z:${s.z}`,
-            `--fall:${(0.4 + r() * 0.6).toFixed(2)}`,
-            `--warm:${warm}`,
-            `--warm-ink:${ink(warm)}`,
-            `--cool:${cool}`,
-            `--cool-ink:${ink(cool)}`,
-            `clip-path:polygon(${corners[0]}% ${corners[1]}%, ${100 - +corners[2]}% 0, 100% ${100 - +corners[3]}%, ${corners[2]}% 100%)`,
-        ].join(";"),
-    };
-});
 ---
 
 <section
     class="leaf"
     aria-label="Commonplace book"
+    data-width={width.toFixed(0)}
+    data-height={height.toFixed(0)}
     data-desk-height={desk.height.toFixed(0)}
     data-phone-height={phone.height.toFixed(0)}
 >
     <div class="leaf__stage">
-        <div class="leaf__world">
-            <div class="leaf__layer leaf__layer--cool">
-                {
-                    paperScraps.map((scrap) => (
-                        <span class="cs" data-kind={scrap.kind} style={scrap.style} aria-hidden="true">
-                            {scrap.word && <span class="cs__word">{scrap.word}</span>}
-                        </span>
-                    ))
-                }
-                {pieces.map((piece) => <CollagePiece laid={piece.laid} style={piece.style} live />)}
-            </div>
-            {
-                mask && (
-                    <div class="leaf__layer leaf__layer--warm" style={`--mask:${mask}`} aria-hidden="true">
-                        <span class="leaf__fill" />
-                        {paperScraps.map((scrap) => (
-                            <span class="cs" data-kind={scrap.kind} style={scrap.style}>
-                                {scrap.word && <span class="cs__word">{scrap.word}</span>}
-                            </span>
-                        ))}
-                        {pieces.map((piece) => (
-                            <CollagePiece laid={piece.laid} style={piece.style} live={false} />
-                        ))}
-                    </div>
-                )
-            }
-            <div class="leaf__layer leaf__layer--lift" aria-hidden="true"></div>
+        <div class="leaf__world" style={`width:${width.toFixed(0)}px;height:${height.toFixed(0)}px`}>
+            {pieces.map((piece) => <CollagePiece laid={piece.laid} style={piece.style} />)}
         </div>
         <p class="leaf__hint" aria-hidden="true">scroll, and it all falls into place</p>
     </div>
@@ -155,23 +137,24 @@ const paperScraps = scraps.map((s, i) => {
         const leaf = document.querySelector<HTMLElement>(".leaf");
         const stage = leaf?.querySelector<HTMLElement>(".leaf__stage");
         const world = leaf?.querySelector<HTMLElement>(".leaf__world");
-        const lift = leaf?.querySelector<HTMLElement>(".leaf__layer--lift");
-        if (!leaf || !stage || !world || !lift) return;
+        if (!leaf || !stage || !world) return;
         const phone = matchMedia("(max-width: 40rem)");
         const still = matchMedia("(prefers-reduced-motion: reduce)");
+        const W = Number(leaf.dataset.width);
+        const H = Number(leaf.dataset.height);
 
         // Scroll budget: hold on the leaf, let everything settle, then pan the board.
-        let geometry = { vw: 0, vh: 0, hold: 0, settle: 0, pan: 0, chaos: 1, board: 1 };
+        let geometry = { vw: 0, vh: 0, hold: 0, settle: 0, pan: 0, formed: 1, board: 1 };
         const measure = () => {
             const vw = stage.clientWidth;
             const vh = innerHeight;
             const boardHeight = Number(phone.matches ? leaf.dataset.phoneHeight : leaf.dataset.deskHeight);
-            const chaos = Math.min(vw * 0.94, vh * 0.9) / 1000;
-            const board = Math.max(chaos, Math.min(vw * 0.94, 1320) / 1000);
+            const formed = Math.min((vw * 0.94) / W, (vh * 0.88) / H);
+            const board = Math.max(formed, Math.min(vw * 0.94, 1320) / W);
             const hold = vh * 0.45;
             const settle = vh * (still.matches ? 0.6 : 2.4);
             const pan = Math.max(0, boardHeight * board + 140 - vh);
-            geometry = { vw, vh, hold, settle, pan, chaos, board };
+            geometry = { vw, vh, hold, settle, pan, formed, board };
             leaf.style.height = `${vh + hold + settle + pan + vh * 0.25}px`;
         };
 
@@ -179,22 +162,21 @@ const paperScraps = scraps.map((s, i) => {
         let idle = 0;
         const update = () => {
             frame = 0;
-            const { vw, vh, hold, settle, pan, chaos, board } = geometry;
+            const { vw, vh, hold, settle, pan, formed, board } = geometry;
             const s = Math.max(0, -leaf.getBoundingClientRect().top);
             const order = clamp01((s - hold) / settle);
-            const spell = 1 - smooth(clamp01((s - hold) / (settle * 0.75)));
             const e = smooth(order);
             const panned = clamp01((s - hold - settle) / Math.max(1, pan)) * pan;
 
             // From the whole leaf in view to the top of the board, then down it.
-            const scale = chaos * (board / chaos) ** e;
+            const scale = formed * (board / formed) ** e;
             const boardTop = vh / 2 / board - 70 / board;
-            const fx = 500;
-            const fy = 500 + (boardTop - 500) * e + panned / board;
+            const fx = W / 2;
+            const fy = H / 2 + (boardTop - H / 2) * e + panned / board;
 
             world.style.transform = `translate(${vw / 2 - fx * scale}px, ${vh / 2 - fy * scale}px) scale(${scale})`;
             world.style.setProperty("--order", order.toFixed(4));
-            world.style.setProperty("--spell", spell.toFixed(4));
+            world.style.setProperty("--zoom", scale.toFixed(4));
             leaf.style.setProperty("--progress", order.toFixed(3));
 
             world.style.willChange = "transform";
@@ -211,33 +193,6 @@ const paperScraps = scraps.map((s, i) => {
         addEventListener("scroll", schedule, { passive: true });
         addEventListener("resize", resize);
         phone.addEventListener("change", resize);
-
-        // Hover lifts a copy of the piece above both layers, in true colors.
-        let lifted: HTMLElement | null = null;
-        const raise = (piece: HTMLElement | null) => {
-            if (lifted && lifted.dataset.id === piece?.dataset.id) return;
-            lift.replaceChildren();
-            lifted = null;
-            if (!piece) return;
-            const copy = piece.cloneNode(true) as HTMLElement;
-            copy.removeAttribute("href");
-            copy.querySelectorAll("button, a").forEach((el) => el.setAttribute("tabindex", "-1"));
-            const box = piece.getBoundingClientRect();
-            copy.style.setProperty("--lift", Math.min(2.4, Math.max(1.1, 300 / Math.max(box.width, box.height))).toFixed(3));
-            copy.classList.add("cp--lifted");
-            lift.append(copy);
-            lifted = copy;
-        };
-        const cool = leaf.querySelector<HTMLElement>(".leaf__layer--cool")!;
-        if (matchMedia("(hover: hover)").matches) {
-            cool.addEventListener("pointerover", (event) =>
-                raise((event.target as HTMLElement).closest<HTMLElement>(".cp")),
-            );
-            cool.addEventListener("pointerleave", () => raise(null));
-        }
-        cool.addEventListener("focusin", (event) => raise((event.target as HTMLElement).closest<HTMLElement>(".cp")));
-        cool.addEventListener("focusout", () => raise(null));
-
         document.addEventListener(
             "astro:before-swap",
             () => {

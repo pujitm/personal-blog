@@ -1,7 +1,6 @@
 ---
-// One thing on the collage. It's drawn twice: once in the cool base layer,
-// where it's a real link (or a playable score), and once in the warm copy cut
-// to the Hidden Leaf, where it's only paint.
+// One thing on the collage: a link to its page, or for sheet music, a score
+// you can click to hear.
 import Incipit from "./Incipit.astro";
 import { formatDate, tracksFor, type Laid } from "../../lib/commonplace";
 import { imageUrl } from "../../lib/images";
@@ -9,10 +8,9 @@ import { imageUrl } from "../../lib/images";
 export interface Props {
     laid: Laid;
     style: string;
-    live: boolean;
 }
 
-const { laid, style, live } = Astro.props;
+const { laid, style } = Astro.props;
 const { item, form } = laid;
 const images = item.images.map((image) => ({
     ...image,
@@ -21,10 +19,10 @@ const images = item.images.map((image) => ({
 }));
 const music = item.music;
 const first = music?.movements[0];
-const tracks = live && music ? tracksFor(item.id, music) : undefined;
-const Root = live && !music ? "a" : "div";
+const tracks = music ? tracksFor(item.id, music) : undefined;
+const Root = music ? "div" : "a";
 const linkProps =
-    live && !music
+    !music
         ? {
               href: item.href,
               target: item.external ? "_blank" : undefined,
@@ -56,7 +54,7 @@ const linkProps =
                     label={`${music.work}, played by ${music.performer}`}
                     marking={`${first.title} · ${music.key}`}
                     tracks={tracks}
-                    piece={live ? item.id : undefined}
+                    piece={item.id}
                 />
             </div>
         ) : form === "wide" ? (

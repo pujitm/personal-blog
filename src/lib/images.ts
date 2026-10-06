@@ -26,14 +26,22 @@ export function imageUrl(src: string): string {
     return file ? `/images/remote/${file}` : src;
 }
 
-/** Shape of a self-hosted image, and whether it's a cut-out, if we have it. */
-export async function imageInfo(src: string): Promise<{ aspect?: number; alpha?: boolean }> {
+/** Shape, dominant color, and whether it's a cut-out, for a self-hosted image. */
+export async function imageInfo(
+    src: string,
+): Promise<{ aspect?: number; alpha?: boolean; color?: [number, number, number] }> {
     const file = local(src);
     if (!file) return {};
     try {
         const { default: sharp } = await import("sharp");
-        const { width, height, hasAlpha } = await sharp(path.join(DIR, file)).metadata();
-        return { aspect: width && height ? width / height : undefined, alpha: hasAlpha };
+        const image = sharp(path.join(DIR, file));
+        const { width, height, hasAlpha } = await image.metadata();
+        const { dominant } = await image.stats();
+        return {
+            aspect: width && height ? width / height : undefined,
+            alpha: hasAlpha,
+            color: [dominant.r, dominant.g, dominant.b],
+        };
     } catch {
         return {};
     }
