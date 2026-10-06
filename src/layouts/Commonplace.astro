@@ -7,10 +7,9 @@ import "../styles/commonplace.css";
 export interface Props {
     title: string;
     description: string;
-    view?: "leaf" | "grid";
 }
 
-const { title, description, view } = Astro.props;
+const { title, description } = Astro.props;
 
 // Everything borrowed, credited once at the bottom of every page.
 const { influences } = await getCollage();
@@ -46,19 +45,20 @@ const credits = [
                     img.src = fallback;
                     return;
                 }
-                const face = img.closest(".face, .entry__figure");
+                const holder = img.closest(".piece__body, .entry__figure");
                 img.remove();
-                if (face && !face.querySelector("img")) face.classList.add("face--noimage");
+                if (holder && !holder.querySelector("img")) holder.classList.add("is-empty");
             };
         </script>
     </head>
     <body class="cp">
         <header class="cp-bar">
             <a class="cp-bar__name" href="/">pujit mehrotra</a>
-            <nav class="cp-bar__views" aria-label="Commonplace views">
-                <a href="/leaf" aria-current={view === "leaf" ? "page" : undefined}>Leaf</a>
-                <a href="/grid" aria-current={view === "grid" ? "page" : undefined}>Grid</a>
+            <nav class="cp-bar__links" aria-label="Elsewhere">
                 <a href="/blog">Blog</a>
+                <a href="https://github.com/pujitm" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://www.linkedin.com/in/pujitm/" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="https://x.com/pujitmm" target="_blank" rel="noopener">X</a>
             </nav>
         </header>
         <slot />

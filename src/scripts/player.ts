@@ -68,7 +68,7 @@ function render() {
     document
         .querySelectorAll<HTMLElement>("[data-tracks][data-piece]")
         .forEach((button) => {
-            // Tiles play the whole piece; movement rows play one movement.
+            // Collage pieces play the whole piece; movement rows play one movement.
             const isMovement = !!button.closest("[data-movement]");
             const active =
                 !!track &&

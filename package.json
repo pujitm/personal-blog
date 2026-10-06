@@ -7,7 +7,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "images": "node integrations/self-host-images.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.12",

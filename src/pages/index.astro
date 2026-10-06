@@ -1,157 +1,346 @@
 ---
-import { SITE_TITLE, SITE_DESCRIPTION } from "../config";
-import Base from "../layouts/BaseLayout.astro";
-import Timeline from "../components/Timeline.astro";
-import { works } from "../data/works";
+import Layout from "../layouts/Commonplace.astro";
+import Insignia from "../components/commonplace/Insignia.astro";
+import Piece from "../components/commonplace/Piece.astro";
+import { KIND_LABELS, anchor, getCollage, type CollageItem, type ItemKind } from "../lib/commonplace";
+import { imageUrl } from "../lib/images";
+import { SITE_DESCRIPTION } from "../config";
 
-const postModules = import.meta.glob("./blog/*.{md,mdx}", { eager: true });
-const posts = Object.values(postModules)
-    .filter((post) => !post.frontmatter.draft)
-    .sort(
-        (a, b) =>
-            new Date(b.frontmatter.pubDate).valueOf() -
-            new Date(a.frontmatter.pubDate).valueOf(),
-    );
+const { pieces, everything } = await getCollage();
 
-const timelineItems = [
-    ...posts.map((post) => ({
-        date: new Date(post.frontmatter.pubDate),
-        title: post.frontmatter.title,
-        description: post.frontmatter.description,
-        link: { href: post.url!, text: "Read" },
-    })),
-    ...works,
-]
-    .sort((a, b) => b.date.valueOf() - a.date.valueOf())
-    .map((item) => ({
-        ...item,
-        date: item.date.toLocaleDateString("en-us", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        }),
-    }));
+const groups = Object.entries(
+    Object.groupBy(everything, (item) => item.kind) as Record<ItemKind, CollageItem[]>,
+);
 ---
 
-<Base description={SITE_DESCRIPTION} title={SITE_TITLE} emptyFooter>
-    <main class="mx-4">
-        <div
-            class="my-16 space-y-16 container max-w-3xl mx-auto text-neutral-900/95 dark:text-neutral-100/90 border-neutral-900 dark:border-neutral-100"
-        >
-            <h1
-                class="text-3xl text-start font-serif tracking-normal leading-normal"
-            >
-                pujit is a software engineer working on <a
-                    class="text-blue-400 underline underline-offset-4 visited:text-violet-400"
-                    href="https://unraid.net/">Unraid</a
-                >.
-            </h1>
-            <p>
-                He once led engineering at small company called Kachow until it
-                was acquired.
-            </p>
-            <!-- <div class="my-20 flex gap-10 flex-wrap">
-        <a
-          class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5"
-          href="mailto:pujitm2009@gmail.com">Say Hi →</a
-        >
-        <a
-          class="text-lg border-b border-neutral-900 dark:border-neutral-100 px-0.5 pb-0.5"
-          href="/work">Past Work</a
-        >
-      </div> -->
-
-            <Timeline items={timelineItems} />
+<Layout title="pujit mehrotra" description={SITE_DESCRIPTION}>
+    <main class="home">
+        <div class="home__paint" aria-hidden="true">
+            <div class="home__brush"><Insignia /></div>
         </div>
 
-        <!-- <h1 class="text-3xl text-center my-2 sm:my-3">pujit's blog</h1>
-    <p class="text-center text-lg sm:pb-4 lg:pb-5">hopefully helpful writing</p>
-    <div class="my-4 mx-auto">
-      <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
-        {
-          posts.map((post) => (
-            <a
-              class="flex flex-col rounded-lg p-4 border border-blue-600 dark:border-rose-300 hover:bg-stone-100 dark:hover:bg-gray-800 transition duration-300 ease-in-out shadow"
-              href={post.url}
-            >
-              <time datetime={post.frontmatter.pubDate} class="sm:mb-2">
-                {new Date(post.frontmatter.pubDate).toLocaleDateString("en-us", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </time>
-              <p class="capitalize">{post.frontmatter.title}</p>
-            </a>
-          ))
-        }
-      </div>
-    </div>
-    <p class="text-center text-lg py-4 lg:py-8">talks, publications, and previous work</p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://mascotyou.com/"
-      >
-        <Time date="Mar 17 2024" />
-        Website for Mascot You
-      </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://www.legislaide.com/"
-      >
-        <Time date="Jan 13 2024" />
-        Legislaide - AI for drafting local gov policy
-      </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://youtu.be/D4lCzCLSO-s?si=bM8Pko8qKNUZuR5K"
-      >
-        <Time date="Jun 29 2023" />
-        <p>Applications of Language Generation</p>
-      </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://github.com/pujitm/fun-ov"
-      >
-        <Time date="Sep 05 2022" />
-        Functional validation library for Typescript
-      </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://github.com/pujitm/git-ice"
-      >
-        <Time date="Feb 12 2022" />
-        Git extension to standardize commit messages
-      </SimpleCardLink>
-      <SimpleCardLink class="border-blue-600 dark:border-blue-300 shadow-none" href="/article/rrr">
-        <Time date="May 31 2017" />
-        Radically Revolutionary Robots
-      </SimpleCardLink>
-    </div>
-    <p class="text-center text-lg py-4 lg:py-8">side projects</p>
-    <div class="grid grid-cols-1 sm:grid-cols-2 justify-center gap-3 w-full max-w-prose mx-auto">
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://github.com/pujitm/bskins-bot"
-      >
-        <Time date="Jul 28 2019" />
-        Counter Strike skin trading program
-      </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://github.com/pujitm/jTorChat-pre-alpha"
-      >
-        <Time date="May 22 2019" />
-        jTorChat - Chat protocol & client over Tor
-      </SimpleCardLink>
-      <SimpleCardLink
-        class="border-blue-600 dark:border-blue-300 shadow-none"
-        href="https://github.com/pujitm/TheMobileMeleeGuide?tab=readme-ov-file"
-      >
-        <Time date="Jul 17 2017" />
-        Super Smash Bros. Melee Android App
-      </SimpleCardLink>
-    </div> -->
+        <section class="hero" aria-labelledby="hello">
+            <div class="hero__words">
+                <h1 id="hello">Hi, I'm Pujit.</h1>
+                <p>
+                    I'm a software engineer working on <a href="https://unraid.net/">Unraid</a>.
+                    I once led engineering at a small company called Kachow until it was acquired.
+                </p>
+                <p>
+                    Below is my commonplace book: the music, stories, books and ideas I keep
+                    coming back to, and a few things I've made. Click the sheet music to hear it.
+                </p>
+            </div>
+
+            <figure class="hero__photo">
+                <span class="hero__tape hero__tape--left" aria-hidden="true"></span>
+                <span class="hero__tape hero__tape--right" aria-hidden="true"></span>
+                <img
+                    src={imageUrl(anchor.image.src)}
+                    width={anchor.image.width}
+                    height={anchor.image.height}
+                    alt={anchor.image.alt}
+                    fetchpriority="high"
+                    referrerpolicy="no-referrer"
+                />
+                <figcaption>Einstein on his 72nd birthday, 1951</figcaption>
+            </figure>
+        </section>
+
+        <section id="collage" class="collage" aria-label="Commonplace book">
+            <div class="collage__grid">
+                {pieces.map((piece, i) => <Piece piece={piece} index={i} />)}
+            </div>
+        </section>
+
+        <section class="index" aria-labelledby="index-title">
+            <h2 id="index-title">Everything above, as a list</h2>
+            <div class="index__groups">
+                {
+                    groups.map(([kind, items]) => (
+                        <div class="index__group">
+                            <h3>{KIND_LABELS[kind]}</h3>
+                            <ul>
+                                {items.map((item) => (
+                                    <li>
+                                        <a
+                                            href={item.href}
+                                            target={item.external ? "_blank" : undefined}
+                                            rel={item.external ? "noopener" : undefined}
+                                        >
+                                            {item.title}
+                                        </a>
+                                        {item.subtitle && <span> · {item.subtitle}</span>}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))
+                }
+            </div>
+        </section>
     </main>
-</Base>
+</Layout>
+
+<style>
+    .home {
+        position: relative;
+        padding: 0 var(--gutter);
+        overflow-x: clip;
+    }
+
+    /* The painted leaf stays put behind everything and zooms as you scroll. */
+    .home__paint {
+        position: sticky;
+        top: 0;
+        z-index: 0;
+        height: 100vh;
+        height: 100svh;
+        margin: 0 calc(-1 * var(--gutter)) -100vh;
+        margin-bottom: -100svh;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    .home__brush {
+        --p: 0;
+        position: absolute;
+        left: calc(70% - var(--p) * 20%);
+        top: 54%;
+        width: min(84vw, 98svh);
+        translate: -50% -50%;
+        scale: calc(1 + var(--p) * 1.9);
+        rotate: calc(var(--p) * -110deg);
+        opacity: calc(0.92 - var(--p) * 0.5);
+        mix-blend-mode: multiply;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .home__brush {
+            mix-blend-mode: normal;
+            opacity: calc(0.7 - var(--p) * 0.4);
+        }
+    }
+
+    /* ---- hello */
+
+    .hero {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        gap: 3rem;
+        min-height: calc(100svh - 5rem);
+        padding-bottom: 4rem;
+    }
+
+    @media (max-width: 55.99rem) {
+        .hero {
+            gap: 2.25rem;
+            padding-top: 1rem;
+        }
+
+        .hero__photo {
+            width: min(72%, 22rem, 46svh);
+        }
+    }
+
+    @media (min-width: 56rem) {
+        .hero {
+            grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+            gap: 2rem;
+        }
+
+        .hero__photo {
+            order: 0;
+        }
+    }
+
+    .hero__words {
+        max-width: 34rem;
+    }
+
+    .hero h1 {
+        margin: 0 0 1.75rem;
+        font-size: clamp(3.4rem, 9vw, 7.75rem);
+        font-weight: 400;
+        line-height: 0.92;
+        letter-spacing: -0.035em;
+    }
+
+    .hero p {
+        margin: 0 0 1rem;
+        font-size: clamp(1.125rem, 1.6vw, 1.375rem);
+        line-height: 1.5;
+        color: var(--ink-2);
+    }
+
+    .hero a {
+        color: var(--ink);
+        text-decoration-color: var(--accent);
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+    }
+
+    .hero__photo {
+        position: relative;
+        justify-self: center;
+        width: min(100%, 34rem, 62svh);
+        order: -1; /* Einstein first on phones */
+        margin: 0;
+        padding: 3.2% 3.2% 13%;
+        background: #fbfaf5;
+        rotate: 3deg;
+        box-shadow:
+            0 2px 2px rgb(40 25 5 / 0.18),
+            0 30px 50px -22px rgb(40 25 5 / 0.6);
+    }
+
+    .hero__photo img {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 960 / 1226;
+        object-fit: cover;
+        background: #d8d2c6;
+        filter: contrast(1.06);
+    }
+
+    .hero__photo figcaption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 3.2%;
+        font-family: var(--font-hand);
+        font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+        font-weight: 600;
+        text-align: center;
+        color: #2b2a27;
+    }
+
+    .hero__tape {
+        position: absolute;
+        z-index: 2;
+        top: -1rem;
+        width: 7.5rem;
+        height: 2rem;
+        background: linear-gradient(rgb(255 255 255 / 0.3), transparent 50%), var(--tape);
+        clip-path: polygon(0 8%, 4% 0, 8% 10%, 12% 0, 88% 0, 92% 12%, 96% 0, 100% 10%, 100% 90%, 96% 100%, 92% 88%, 88% 100%, 12% 100%, 8% 90%, 4% 100%, 0 92%);
+        mix-blend-mode: multiply;
+    }
+
+    .hero__tape--left {
+        left: -2.25rem;
+        rotate: -38deg;
+        top: 0.5rem;
+    }
+
+    .hero__tape--right {
+        right: -2.25rem;
+        rotate: 40deg;
+        top: 0.75rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .hero__tape {
+            mix-blend-mode: normal;
+            opacity: 0.8;
+        }
+    }
+
+    /* ---- collage */
+
+    .collage {
+        padding: 2rem 2.5% 7rem;
+    }
+
+    /* ---- list */
+
+    .index {
+        position: relative;
+        z-index: 1;
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: 3rem 0 0;
+        border-top: 1px solid var(--rule);
+    }
+
+    .index h2 {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+    }
+
+    .index__groups {
+        margin-top: 1.5rem;
+        columns: 15rem;
+        column-gap: 2.5rem;
+    }
+
+    .index__group {
+        break-inside: avoid;
+        margin-bottom: 2rem;
+    }
+
+    .index h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+
+    .index ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.9375rem;
+        line-height: 1.5;
+    }
+
+    .index li span {
+        color: var(--ink-3);
+        font-style: italic;
+    }
+
+    .index a {
+        text-decoration-color: var(--rule);
+        text-underline-offset: 3px;
+    }
+
+    .index a:hover {
+        text-decoration-color: var(--accent);
+    }
+</style>
+
+<script>
+    function paint() {
+        const home = document.querySelector<HTMLElement>(".home");
+        const brush = home?.querySelector<HTMLElement>(".home__brush");
+        if (!home || !brush || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        let frame = 0;
+        const update = () => {
+            frame = 0;
+            const travel = Math.max(1, home.offsetHeight - innerHeight);
+            const p = Math.min(1, Math.max(0, scrollY / travel));
+            brush.style.setProperty("--p", p.toFixed(4));
+        };
+        const schedule = () => (frame ||= requestAnimationFrame(update));
+        update();
+        addEventListener("scroll", schedule, { passive: true });
+        addEventListener("resize", schedule);
+        document.addEventListener(
+            "astro:before-swap",
+            () => {
+                removeEventListener("scroll", schedule);
+                removeEventListener("resize", schedule);
+            },
+            { once: true },
+        );
+    }
+
+    document.addEventListener("astro:page-load", paint);
+</script>

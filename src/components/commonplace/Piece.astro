@@ -1,0 +1,221 @@
+---
+import Incipit from "./Incipit.astro";
+import { KIND_LABELS, formatDate, tracksFor, type Piece } from "../../lib/commonplace";
+import { imageUrl } from "../../lib/images";
+
+export interface Props {
+    piece: Piece;
+    /** Position in the collage; seeds the hand-placed wobble. */
+    index: number;
+}
+
+const { piece, index } = Astro.props;
+const { art } = piece;
+
+// Seeded randomness: the collage looks hand-laid but never reshuffles.
+let seed = [...art.id].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7 + index * 101);
+const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 2 ** 32;
+};
+const between = (lo: number, hi: number) => lo + (hi - lo) * rand();
+const sign = () => (rand() < 0.5 ? -1 : 1);
+
+// Footprint at 12, 8 and 4 columns, keeping the aspect ratio.
+const [w, h] = art.shape.split("x").map(Number);
+// Narrow screens get relatively bigger pieces so nothing turns to confetti;
+// sheet music and film always run the full width of a phone.
+const fit = (cols: number, wide: boolean) => {
+    const boost = cols === 12 ? 1 : cols === 8 ? 1.15 : 1.7;
+    const width = cols === 4 && wide ? 4 : Math.max(2, Math.min(cols, Math.round((w * cols * boost) / 12)));
+    const height = Math.max(cols === 4 && wide ? 4 : 2, Math.round((h * width) / w));
+    return `--w${cols}:${width};--h${cols}:${height}`;
+};
+
+const treatment = piece.type === "stack" ? "stack" : (() => {
+    const kind = piece.item.kind;
+    if (kind === "work") return "card";
+    if (kind === "writing") return "sticky";
+    if (kind === "book" && !piece.item.images.length) return "cover";
+    return art.treatment;
+})();
+
+const item = piece.type === "item" ? piece.item : undefined;
+
+// What lies on top of what: photos at the bottom, paper scraps over them, and
+// the sheet music (which you click) on top.
+const LAYER: Record<string, number> = { card: 5, cover: 3, stack: 6, sticky: 9, strip: 12 };
+
+// Wobble: how far a piece leans and drifts off its cell, and how much it
+// bleeds over its neighbors.
+const calm = treatment === "strip" || treatment === "filmstrip";
+const style = [
+    fit(12, false),
+    fit(8, false),
+    fit(4, treatment === "strip" || treatment === "filmstrip"),
+    `--rot:${(sign() * between(calm ? 0.6 : 1.5, calm ? 2.5 : 6)).toFixed(2)}deg`,
+    `--dx:${(sign() * between(1.5, 6)).toFixed(1)}%`,
+    `--dy:${(sign() * between(1.5, 6)).toFixed(1)}%`,
+    `--bleed:${between(1.03, 1.12).toFixed(3)}`,
+    // Pieces carrying one of my notes sit high enough that the note shows.
+    `--z:${Math.max((LAYER[treatment] ?? 1) + Math.floor(rand() * 4), item?.note ? 14 : 0)}`,
+    `--depth:${art.depth ?? 1}`,
+].join(";");
+
+// Irregular scissor cut: each corner nudged a little.
+const nudge = (max: number) => between(0, max).toFixed(1);
+const scissorCut = `polygon(${nudge(2.5)}% ${nudge(3)}%, ${(100 - +nudge(2.5)).toFixed(1)}% ${nudge(2)}%, ${(100 - +nudge(3)).toFixed(1)}% ${(100 - +nudge(2.5)).toFixed(1)}%, ${nudge(2)}% ${(100 - +nudge(3)).toFixed(1)}%)`;
+
+// Torn paper: ragged top and bottom edges.
+const torn = (() => {
+    const steps = 28;
+    const top = Array.from({ length: steps + 1 }, (_, i) => `${((i / steps) * 100).toFixed(1)}% ${between(0, 6).toFixed(1)}%`);
+    const bottom = Array.from({ length: steps + 1 }, (_, i) => `${(100 - (i / steps) * 100).toFixed(1)}% ${(100 - between(0, 6)).toFixed(1)}%`);
+    return `polygon(${[...top, ...bottom].join(", ")})`;
+})();
+
+const tape = rand() < (treatment === "print" || treatment === "polaroid" || treatment === "cover" ? 0.7 : 0.3);
+const tapeStyle = `--tape-x:${between(15, 70).toFixed(0)}%;--tape-rot:${(sign() * between(2, 9)).toFixed(1)}deg`;
+const pin = !tape && (treatment === "card" || treatment === "print") && rand() < 0.6;
+
+const label = item ? KIND_LABELS[item.kind] : "Books";
+const music = item?.music;
+const tracks = music && item ? tracksFor(item.id, music) : undefined;
+const firstMovement = music?.movements[0];
+const images = (item?.images ?? []).map((image) => ({
+    ...image,
+    src: imageUrl(image.src),
+    fallback: image.fallback && imageUrl(image.fallback),
+}));
+
+const inkFor = (hex = "#333") => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55 ? "#1c1a17" : "#f7f2e8";
+};
+
+const linkProps = item
+    ? {
+          href: item.href,
+          target: item.external ? "_blank" : undefined,
+          rel: item.external ? "noopener" : undefined,
+      }
+    : {};
+// Sheet music plays when clicked, so its piece isn't one big link.
+const Root = treatment === "strip" || treatment === "stack" ? "div" : "a";
+const action = treatment === "strip" ? "Play" : item?.external ? "Visit" : "Open";
+---
+
+<Root
+    class="piece"
+    data-treatment={treatment}
+    data-kind={item?.kind}
+    data-white={treatment === "loose" && images.some((image) => /\.jpe?g($|\?)/i.test(image.src)) ? "" : undefined}
+    style={style}
+    {...(Root === "a" ? linkProps : {})}
+>
+    {tape && <span class="piece__tape" style={tapeStyle} aria-hidden="true" />}
+    {pin && <span class="piece__pin" aria-hidden="true" />}
+
+    {
+        treatment === "strip" && music && item ? (
+            <div class="piece__body strip" style={`clip-path:${torn}`}>
+                <p class="strip__label">
+                    <a href={item.href}>
+                        {music.composer.split(" ").at(-1)} · {item.title}
+                    </a>
+                    <span>{music.performer.split(" · ")[0]}</span>
+                </p>
+                <Incipit
+                    abc={firstMovement?.incipit}
+                    label={music.work}
+                    marking={`${firstMovement?.title} · ${music.key}`}
+                    tracks={tracks}
+                    piece={item.id}
+                />
+            </div>
+        ) : treatment === "stack" && piece.type === "stack" ? (
+            <div class="piece__body stack">
+                <p class="stack__label">Reading now</p>
+                <ul>
+                    {piece.books.map((book, i) => {
+                        const lean = (sign() * between(0, 2.2)).toFixed(2);
+                        const shift = (sign() * between(0, 7)).toFixed(1);
+                        const width = between(80, 98).toFixed(0);
+                        return (
+                            <li style={`--cover:${book.color};--cover-ink:${inkFor(book.color)};--lean:${lean}deg;--shift:${shift}%;--len:${width}%;--thick:${between(0.85, 1.2).toFixed(2)}`}>
+                                <a href={book.href}>
+                                    <span class="spine__title">{book.title}</span>
+                                    <span class="spine__author">{book.subtitle?.split(" & ")[0].replace(" et al.", "")}</span>
+                                </a>
+                            </li>
+                        );
+                    })}
+                </ul>
+            </div>
+        ) : treatment === "cover" && item ? (
+            <div class="piece__body cover" style={`--cover:${item.color ?? "#3b3a36"};--cover-ink:${inkFor(item.color)}`}>
+                <span class="cover__title">{item.title}</span>
+                <span class="cover__author">{item.subtitle}</span>
+            </div>
+        ) : treatment === "card" && item ? (
+            <div class="piece__body card">
+                <span class="card__meta">{item.date && formatDate(item.date)}</span>
+                <span class="card__title">{item.title}</span>
+                {item.description && <span class="card__desc">{item.description}</span>}
+            </div>
+        ) : treatment === "sticky" && item ? (
+            <div class="piece__body sticky">
+                <span class="sticky__title">{item.title}</span>
+                <span class="sticky__meta">{item.date && formatDate(item.date)}</span>
+            </div>
+        ) : treatment === "filmstrip" && item ? (
+            <div class="piece__body film">
+                {images.slice(0, 3).map((image) => (
+                    <img
+                        src={image.src}
+                        data-fallback={image.fallback}
+                        alt={image.alt}
+                        loading="lazy"
+                        decoding="async"
+                        referrerpolicy="no-referrer"
+                        onerror="window.commonplaceImageError?.(this)"
+                    />
+                ))}
+            </div>
+        ) : item ? (
+            <div
+                class="piece__body photo"
+                data-count={Math.min(images.length, 2)}
+                style={treatment === "cutout" ? `clip-path:${scissorCut}` : undefined}
+            >
+                <div class="photo__frames">
+                    {images.slice(0, 2).map((image) => (
+                        <img
+                            src={image.src}
+                            data-fallback={image.fallback}
+                            alt={image.alt}
+                            loading="lazy"
+                            decoding="async"
+                            referrerpolicy="no-referrer"
+                            style={image.focus && `object-position:${image.focus}`}
+                            onerror="window.commonplaceImageError?.(this)"
+                        />
+                    ))}
+                    <span class="photo__fallback">{item.title}</span>
+                </div>
+                {treatment === "polaroid" && <span class="photo__caption">{item.title}</span>}
+            </div>
+        ) : null
+    }
+
+    {
+        item && treatment !== "polaroid" && treatment !== "card" && treatment !== "sticky" && treatment !== "cover" && treatment !== "strip" && (
+            <span class="piece__label">{item.title}</span>
+        )
+    }
+    {item?.note && <span class="piece__note">{item.note}</span>}
+    <span class="piece__tag" aria-hidden="true">
+        {label}
+        {item ? ` · ${action} →` : ""}
+    </span>
+</Root>

@@ -1,0 +1,60 @@
+---
+// The Hidden Leaf symbol, painted: a spiral that runs out into a leaf point.
+// Drawn in a 1000x1000 box.
+
+const C = { x: 560, y: 560 };
+const TURNS = 1.5;
+const END = Math.PI / 2 + 4 * Math.PI; // finish at the bottom, heading left
+const START = END - TURNS * 2 * Math.PI;
+const R0 = 26;
+const R1 = 330;
+const radius = (t: number) => R0 + ((R1 - R0) * (t - START)) / (END - START);
+const at = (t: number) => ({ x: C.x + radius(t) * Math.cos(t), y: C.y + radius(t) * Math.sin(t) });
+
+const spiral = Array.from({ length: 161 }, (_, i) => at(START + ((END - START) * i) / 160));
+const end = spiral[spiral.length - 1];
+const tip = { x: 105, y: 105 };
+const control = { x: 120, y: 880 };
+const rejoin = at(END - (225 * Math.PI) / 180);
+
+const f = (n: number) => n.toFixed(1);
+const d = [
+    `M${f(spiral[0].x)} ${f(spiral[0].y)}`,
+    ...spiral.slice(1).map((p) => `L${f(p.x)} ${f(p.y)}`),
+    `Q${control.x} ${control.y} ${tip.x} ${tip.y}`,
+    `L${f(rejoin.x)} ${f(rejoin.y)}`,
+].join(" ");
+---
+
+<svg class="insignia" viewBox="0 0 1000 1000" aria-hidden="true">
+    <defs>
+        <filter id="brush" x="-10%" y="-10%" width="120%" height="120%">
+            <!-- Ragged edges, then a few dry streaks running with the stroke. -->
+            <feTurbulence type="fractalNoise" baseFrequency="0.018 0.03" numOctaves="3" seed="7" result="warp" />
+            <feDisplacementMap in="SourceGraphic" in2="warp" scale="26" result="rough" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.003 0.05" numOctaves="2" seed="4" result="streaks" />
+            <feColorMatrix in="streaks" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -2.2 2.25" result="dry" />
+            <feComposite in="rough" in2="dry" operator="in" />
+        </filter>
+    </defs>
+    <g filter="url(#brush)">
+        <path class="insignia__stroke" d={d} />
+    </g>
+</svg>
+
+<style>
+    .insignia {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+    }
+
+    .insignia__stroke {
+        fill: none;
+        stroke: var(--paint, #cf3e1c);
+        stroke-width: 66;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+</style>

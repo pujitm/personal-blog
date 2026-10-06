@@ -2,8 +2,8 @@
 import { getCollection, render } from "astro:content";
 import Layout from "../../layouts/Commonplace.astro";
 import Incipit from "../../components/commonplace/Incipit.astro";
-import Tile from "../../components/commonplace/Tile.astro";
 import { KIND_LABELS, getInfluences, tracksFor } from "../../lib/commonplace";
+import { imageUrl } from "../../lib/images";
 
 export async function getStaticPaths() {
     const entries = await getCollection("commonplace", (entry) => !entry.data.draft);
@@ -30,6 +30,10 @@ const movements = (music?.movements ?? []).map((movement) => ({
 }));
 
 const label = KIND_LABELS[entry.data.kind];
+const inkFor = (hex = "#333") => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55 ? "#1c1a17" : "#f7f2e8";
+};
 const description = music
     ? `${music.work}, played by ${music.performer}.`
     : `${entry.data.title}${entry.data.subtitle ? `, ${entry.data.subtitle}` : ""}: from my commonplace book.`;
@@ -98,8 +102,8 @@ const description = music
                             {entry.data.images.map((image) => (
                                 <figure class="entry__figure">
                                     <img
-                                        src={image.src}
-                                        data-fallback={image.fallback}
+                                        src={imageUrl(image.src)}
+                                        data-fallback={image.fallback && imageUrl(image.fallback)}
                                         alt={image.alt}
                                         referrerpolicy="no-referrer"
                                         onerror="window.commonplaceImageError?.(this)"
@@ -109,9 +113,15 @@ const description = music
                             ))}
                         </div>
                     ) : (
-                        item && (
-                            <div class="entry__tile" style={`aspect-ratio:${item.shape.w}/${item.shape.h}`}>
-                                <Tile item={item} mode="leaf" />
+                        item?.kind === "book" && (
+                            <div class="entry__book piece" data-treatment="cover">
+                                <div
+                                    class="piece__body cover"
+                                    style={`--cover:${item.color ?? "#3b3a36"};--cover-ink:${inkFor(item.color)}`}
+                                >
+                                    <span class="cover__title">{item.title}</span>
+                                    <span class="cover__author">{item.subtitle}</span>
+                                </div>
                             </div>
                         )
                     )
@@ -136,7 +146,7 @@ const description = music
 
         <nav class="entry__pager" aria-label="More from the commonplace book">
             <a href={prev.href} rel="prev"><span class="kicker">← Previous</span>{prev.title}</a>
-            <a href="/leaf" class="entry__home">Back to the leaf</a>
+            <a href="/#collage" class="entry__home">Back to the collage</a>
             <a href={next.href} rel="next"><span class="kicker">Next →</span>{next.title}</a>
         </nav>
     </main>
@@ -301,20 +311,16 @@ const description = music
         color: var(--ink-3);
     }
 
-    .entry__figure.face--noimage {
+    .entry__figure.is-empty {
         min-height: 12rem;
     }
 
-    .entry__tile {
-        max-width: 26rem;
-        max-height: 70vh;
+    .entry__book {
+        width: min(100%, 24rem);
+        aspect-ratio: 2 / 3;
         margin: 0 auto;
-    }
-
-    .entry__tile :global(.tile) {
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
+        transform: rotate(2deg);
+        animation: none;
     }
 
     .entry__body {

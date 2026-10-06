@@ -1,5 +1,6 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { works } from "../data/works";
+import { composition, type Art } from "../data/collage";
 
 type Entry = CollectionEntry<"commonplace">;
 type EntryData = Entry["data"];
@@ -22,8 +23,8 @@ export interface CollageItem {
     color?: string;
     shelf?: EntryData["shelf"];
     music?: Music;
-    /** Grid footprint in columns and rows. */
-    shape: { w: number; h: number };
+    /** Footprint from frontmatter, used when the composition doesn't place it. */
+    shape?: string;
 }
 
 export const KIND_LABELS: Record<ItemKind, string> = {
@@ -38,49 +39,9 @@ export const KIND_LABELS: Record<ItemKind, string> = {
     writing: "Writing",
 };
 
-const DEFAULT_SHAPES: Record<ItemKind, string> = {
-    music: "4x2",
-    anime: "3x3",
-    film: "2x3",
-    book: "2x3",
-    game: "3x3",
-    character: "3x3",
-    image: "3x3",
-    work: "3x2",
-    writing: "3x2",
-};
-
-/** The photo everything else orbits. */
-export const anchor = {
-    title: "Albert Einstein, 1951",
-    image: {
-        src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Albert_Einstein_sticks_his_tongue.jpg/960px-Albert_Einstein_sticks_his_tongue.jpg",
-        alt: "Albert Einstein sticking his tongue out at the camera on his 72nd birthday.",
-        credit: "Arthur Sasse / International News Service, public domain, via Wikimedia Commons",
-    },
-};
-
-const parseShape = (shape: string) => {
-    const [w, h] = shape.split("x").map(Number);
-    return { w, h };
-};
+export { anchor } from "../data/anchor";
 
 export const entryHref = (id: string) => `/commonplace/${id}`;
-
-/** Spread each kind evenly through the list so the collage doesn't clump. */
-function interleave<T extends { kind: string }>(items: T[]): T[] {
-    const counts = new Map<string, number>();
-    for (const item of items) counts.set(item.kind, (counts.get(item.kind) ?? 0) + 1);
-    const seen = new Map<string, number>();
-    return items
-        .map((item, index) => {
-            const nth = seen.get(item.kind) ?? 0;
-            seen.set(item.kind, nth + 1);
-            return { item, index, rank: (nth + 0.5) / counts.get(item.kind)! };
-        })
-        .sort((a, b) => a.rank - b.rank || a.index - b.index)
-        .map(({ item }) => item);
-}
 
 function fromEntry(entry: Entry): CollageItem {
     const { data } = entry;
@@ -96,16 +57,22 @@ function fromEntry(entry: Entry): CollageItem {
         color: data.color,
         shelf: data.shelf,
         music: data.music,
-        shape: parseShape(data.shape ?? DEFAULT_SHAPES[data.kind]),
+        shape: data.shape,
     };
 }
 
-/** Things I love, interleaved. */
+const placed = new Map(composition.map((art, i) => [art.id, i]));
+
+/** Things I love, in collage order. */
 export async function getInfluences(): Promise<CollageItem[]> {
     const entries = (await getCollection("commonplace"))
         .filter((entry) => !entry.data.draft)
-        .sort((a, b) => (a.data.order ?? Infinity) - (b.data.order ?? Infinity));
-    return interleave(entries.map(fromEntry));
+        .sort(
+            (a, b) =>
+                (placed.get(a.id) ?? Infinity) - (placed.get(b.id) ?? Infinity) ||
+                (a.data.order ?? Infinity) - (b.data.order ?? Infinity),
+        );
+    return entries.map(fromEntry);
 }
 
 /** Things I've made: works, talks and blog posts, newest first. */
@@ -127,7 +94,6 @@ export function getOutput(): CollageItem[] {
                 href: post.url,
                 external: false,
                 images: [],
-                shape: parseShape(DEFAULT_SHAPES.writing),
             }),
         );
 
@@ -143,7 +109,6 @@ export function getOutput(): CollageItem[] {
             href,
             external: /^https?:/.test(href),
             images: [],
-            shape: parseShape(DEFAULT_SHAPES.work),
         };
     });
 
@@ -152,10 +117,54 @@ export function getOutput(): CollageItem[] {
     );
 }
 
+export type Piece =
+    | { type: "item"; item: CollageItem; art: Art }
+    | { type: "stack"; books: CollageItem[]; art: Art };
+
+const DEFAULT_ART: Partial<Record<ItemKind, Omit<Art, "id">>> = {
+    music: { shape: "5x4", treatment: "strip", depth: 3 },
+    book: { shape: "2x6", treatment: "cover", depth: 1 },
+    work: { shape: "3x4", treatment: "print", depth: 1 },
+    writing: { shape: "2x4", treatment: "print", depth: 2 },
+};
+
+const artFor = (item: CollageItem): Art => {
+    const listed = composition.find((art) => art.id === item.id);
+    if (listed) return listed;
+    const fallback = DEFAULT_ART[item.kind] ?? { shape: "3x6", treatment: "print", depth: 1 };
+    return { id: item.id, ...fallback, shape: item.shape ?? fallback.shape };
+};
+
+/** Everything on the collage, in the order it's laid down. */
 export async function getCollage() {
     const influences = await getInfluences();
     const output = getOutput();
-    return { influences, output, all: [...influences, ...output] };
+
+    // Books I'm reading now become one stack, wherever "@reading" sits.
+    const reading = influences.filter((item) => item.kind === "book" && item.shelf === "reading");
+    const stackAt = composition.findIndex((art) => art.id === "@reading");
+    const pieces: Piece[] = [];
+    for (const item of influences) {
+        if (reading.includes(item)) continue;
+        if (stackAt >= 0 && pieces.length === stackAt && reading.length) {
+            pieces.push({ type: "stack", books: reading, art: composition[stackAt] });
+        }
+        pieces.push({ type: "item", item, art: artFor(item) });
+    }
+
+    // Spread what I've made evenly through the rest.
+    const laid: Piece[] = [];
+    let made = 0;
+    pieces.forEach((piece, i) => {
+        laid.push(piece);
+        const due = Math.floor(((i + 1) * output.length) / pieces.length);
+        while (made < due) {
+            const item = output[made++];
+            laid.push({ type: "item", item, art: artFor(item) });
+        }
+    });
+
+    return { influences, output, pieces: laid, everything: [...influences, ...output] };
 }
 
 export function formatDate(date: Date) {
