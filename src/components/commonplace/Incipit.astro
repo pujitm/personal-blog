@@ -1,0 +1,51 @@
+---
+import type { Track } from "../../lib/commonplace";
+
+export interface Props {
+    /** Opening measures in ABC notation, without the X: header. */
+    abc?: string;
+    /** What the music is, for screen readers. */
+    label: string;
+    /** Shown on the empty staff when there's no notation yet. */
+    marking?: string;
+    /** When set, the incipit is a button that plays these. */
+    tracks?: Track[];
+    trackIndex?: number;
+    /** Groups buttons that belong to the same piece. */
+    piece?: string;
+}
+
+const { abc, label, marking, tracks, trackIndex = 0, piece } = Astro.props;
+const playable = !!tracks?.length;
+const Tag = playable ? "button" : "div";
+---
+
+<Tag
+    class="incipit"
+    data-incipit={abc}
+    data-empty={abc ? undefined : ""}
+    data-tracks={playable ? JSON.stringify(tracks) : undefined}
+    data-track-index={playable ? trackIndex : undefined}
+    data-piece={playable ? piece : undefined}
+    type={playable ? "button" : undefined}
+    aria-pressed={playable ? "false" : undefined}
+    aria-label={playable ? `Play ${label}` : `Opening measures of ${label}`}
+    role={playable ? undefined : "img"}
+>
+    <span class="incipit__score" aria-hidden="true">
+        {!abc && marking && <span class="incipit__marking">{marking}</span>}
+    </span>
+    {
+        playable && (
+            <span class="incipit__cue" aria-hidden="true">
+                <span class="incipit__cue-play">▶ play</span>
+                <span class="incipit__cue-pause">❚❚ pause</span>
+                <span class="incipit__bars">
+                    <i />
+                    <i />
+                    <i />
+                </span>
+            </span>
+        )
+    }
+</Tag>

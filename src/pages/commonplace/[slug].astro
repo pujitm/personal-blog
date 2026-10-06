@@ -1,0 +1,385 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Commonplace.astro";
+import Incipit from "../../components/commonplace/Incipit.astro";
+import Tile from "../../components/commonplace/Tile.astro";
+import { KIND_LABELS, getInfluences, tracksFor } from "../../lib/commonplace";
+
+export async function getStaticPaths() {
+    const entries = await getCollection("commonplace", (entry) => !entry.data.draft);
+    return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const hasWriting = !!entry.body?.trim();
+
+const influences = await getInfluences();
+const index = influences.findIndex((item) => item.id === entry.id);
+const item = influences[index];
+const prev = influences[(index - 1 + influences.length) % influences.length];
+const next = influences[(index + 1) % influences.length];
+
+const { music } = entry.data;
+const tracks = music ? tracksFor(entry.id, music) : [];
+// Movements without a recording are skipped in the queue, so map each to its track.
+let trackCursor = 0;
+const movements = (music?.movements ?? []).map((movement) => ({
+    ...movement,
+    trackIndex: movement.recording ? trackCursor++ : undefined,
+}));
+
+const label = KIND_LABELS[entry.data.kind];
+const description = music
+    ? `${music.work}, played by ${music.performer}.`
+    : `${entry.data.title}${entry.data.subtitle ? `, ${entry.data.subtitle}` : ""}: from my commonplace book.`;
+---
+
+<Layout title={`${entry.data.title} · pujit`} description={description}>
+    <main class="entry" data-kind={entry.data.kind}>
+        <article class="entry__layout">
+            <header class="entry__head">
+                <p class="kicker">
+                    {label}
+                    {music && <> · {music.key}</>}
+                </p>
+                <h1>{entry.data.title}</h1>
+                {
+                    music ? (
+                        <p class="entry__byline">
+                            {music.composer}, <em>{music.work}</em>
+                            <br />
+                            played by {music.performer}
+                        </p>
+                    ) : (
+                        entry.data.subtitle && (
+                            <p class="entry__byline">{entry.data.subtitle}</p>
+                        )
+                    )
+                }
+                {entry.data.note && <p class="note entry__note">{entry.data.note}</p>}
+                {
+                    tracks.length > 1 && (
+                        <button
+                            class="entry__play"
+                            type="button"
+                            data-tracks={JSON.stringify(tracks)}
+                            data-track-index="0"
+                            data-piece={entry.id}
+                            aria-pressed="false"
+                        >
+                            <span class="incipit__cue-play">▶ Play all {tracks.length} movements</span>
+                            <span class="incipit__cue-pause">❚❚ Pause</span>
+                        </button>
+                    )
+                }
+            </header>
+
+            <div class="entry__media">
+                {
+                    music ? (
+                        <ol class="movements">
+                            {movements.map((movement) => (
+                                <li class="movement" data-movement>
+                                    <p class="movement__title">{movement.title}</p>
+                                    <Incipit
+                                        abc={movement.incipit}
+                                        label={`${music.work}, ${movement.title}`}
+                                        marking={`${movement.title} · ${music.key}`}
+                                        tracks={movement.trackIndex === undefined ? undefined : tracks}
+                                        trackIndex={movement.trackIndex}
+                                        piece={entry.id}
+                                    />
+                                </li>
+                            ))}
+                        </ol>
+                    ) : entry.data.images.length ? (
+                        <div class="gallery" data-count={entry.data.images.length}>
+                            {entry.data.images.map((image) => (
+                                <figure class="entry__figure">
+                                    <img
+                                        src={image.src}
+                                        data-fallback={image.fallback}
+                                        alt={image.alt}
+                                        referrerpolicy="no-referrer"
+                                        onerror="window.commonplaceImageError?.(this)"
+                                    />
+                                    {image.credit && <figcaption>{image.credit}</figcaption>}
+                                </figure>
+                            ))}
+                        </div>
+                    ) : (
+                        item && (
+                            <div class="entry__tile" style={`aspect-ratio:${item.shape.w}/${item.shape.h}`}>
+                                <Tile item={item} mode="leaf" />
+                            </div>
+                        )
+                    )
+                }
+                {
+                    music && tracks.length > 0 && (
+                        <p class="entry__credit">
+                            Recordings play from YouTube. Click a score to listen.
+                        </p>
+                    )
+                }
+            </div>
+
+            {
+                hasWriting && (
+                    <div class="entry__body">
+                        <Content />
+                    </div>
+                )
+            }
+        </article>
+
+        <nav class="entry__pager" aria-label="More from the commonplace book">
+            <a href={prev.href} rel="prev"><span class="kicker">← Previous</span>{prev.title}</a>
+            <a href="/leaf" class="entry__home">Back to the leaf</a>
+            <a href={next.href} rel="next"><span class="kicker">Next →</span>{next.title}</a>
+        </nav>
+    </main>
+</Layout>
+
+<style>
+    .entry {
+        padding: 1rem var(--gutter) 0;
+    }
+
+    .entry__layout {
+        display: grid;
+        gap: 2.5rem;
+        max-width: 72rem;
+        margin: 0 auto;
+        grid-template-areas: "head" "media" "body";
+    }
+
+    @media (min-width: 56rem) {
+        .entry__layout {
+            grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+            grid-template-areas:
+                "head media"
+                "body media";
+            align-items: start;
+            column-gap: 4rem;
+        }
+    }
+
+    .entry__head {
+        grid-area: head;
+    }
+
+    .entry__media {
+        grid-area: media;
+    }
+
+    .entry__body {
+        grid-area: body;
+    }
+
+    h1 {
+        margin: 0.4rem 0 0.75rem;
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        font-weight: 400;
+        line-height: 1.02;
+        letter-spacing: -0.02em;
+        text-wrap: balance;
+    }
+
+    .entry__byline {
+        margin: 0;
+        font-size: 1.125rem;
+        color: var(--ink-2);
+    }
+
+    .entry__note {
+        margin: 1.5rem 0 0;
+        font-size: 1.75rem;
+        max-width: 22rem;
+    }
+
+    .entry__play {
+        all: unset;
+        margin-top: 1.75rem;
+        display: inline-flex;
+        padding: 0.55rem 1rem;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--paper);
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+    }
+
+    .entry__play[aria-pressed="true"] {
+        background: var(--accent);
+    }
+
+    .entry__play:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 3px;
+    }
+
+    .entry__play .incipit__cue-pause {
+        display: none;
+    }
+
+    .entry__play[aria-pressed="true"][data-state="playing"] .incipit__cue-play {
+        display: none;
+    }
+
+    .entry__play[aria-pressed="true"][data-state="playing"] .incipit__cue-pause {
+        display: inline;
+    }
+
+    .movements {
+        display: grid;
+        gap: 1.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .movement {
+        container: tile / inline-size;
+        padding: 1rem 1.25rem 1.1rem;
+        background: var(--card);
+        box-shadow: var(--shadow);
+    }
+
+    .movement__title {
+        margin: 0 0 0.6rem;
+        font-family: var(--font-mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+    }
+
+    .movement :global(.incipit[data-empty] .incipit__score) {
+        aspect-ratio: 5 / 1.1;
+    }
+
+    .entry__credit {
+        margin: 1rem 0 0;
+        font-size: 0.875rem;
+        color: var(--ink-3);
+    }
+
+    .gallery {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .gallery[data-count="2"] {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .entry__figure {
+        margin: 0;
+        padding: 0.6rem 0.6rem 0.5rem;
+        background: var(--card);
+        box-shadow: var(--shadow);
+    }
+
+    .entry__figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: 80vh;
+        object-fit: contain;
+        background: var(--paper-deep);
+    }
+
+    .entry__figure figcaption {
+        padding-top: 0.45rem;
+        font-size: 0.8125rem;
+        color: var(--ink-3);
+    }
+
+    .entry__figure.face--noimage {
+        min-height: 12rem;
+    }
+
+    .entry__tile {
+        max-width: 26rem;
+        max-height: 70vh;
+        margin: 0 auto;
+    }
+
+    .entry__tile :global(.tile) {
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    .entry__body {
+        max-width: 38rem;
+        font-size: 1.1875rem;
+        line-height: 1.65;
+    }
+
+    .entry__body :global(h2) {
+        margin: 2.5rem 0 0.5rem;
+        font-size: 1.5rem;
+        font-weight: 500;
+    }
+
+    .entry__body :global(p) {
+        margin: 0 0 1.1rem;
+    }
+
+    .entry__body :global(blockquote) {
+        margin: 1.5rem 0;
+        padding-left: 1.25rem;
+        border-left: 2px solid var(--accent);
+        font-style: italic;
+        color: var(--ink-2);
+    }
+
+    .entry__pager {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: end;
+        gap: 1rem;
+        max-width: 72rem;
+        margin: 5rem auto 0;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--rule);
+    }
+
+    .entry__pager a {
+        display: grid;
+        gap: 0.2rem;
+        text-decoration: none;
+        line-height: 1.25;
+    }
+
+    .entry__pager a:hover {
+        color: var(--accent);
+    }
+
+    .entry__pager a[rel="next"] {
+        text-align: right;
+    }
+
+    .entry__home {
+        font-family: var(--font-hand);
+        font-size: 1.35rem;
+        color: var(--ink-2);
+    }
+
+    @media (max-width: 36rem) {
+        .entry__pager {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .entry__home {
+            display: none !important;
+        }
+    }
+</style>

@@ -1,0 +1,817 @@
+/*
+ * Commonplace book: shared tokens, tiles and player.
+ *
+ * Tiles are size containers, so the same markup adapts to whatever footprint
+ * it gets: a thumbnail in the leaf, a grid cell, or the hover preview. Change a
+ * tile's shape (the `shape` frontmatter, or --w/--h) and its content follows.
+ */
+
+:root {
+    --paper: #f3ede1;
+    --paper-deep: #e9e0cd;
+    --card: #fbf8f1;
+    --ink: #1c1a17;
+    --ink-2: #4a443b;
+    --ink-3: #82786a;
+    --rule: #d6cab3;
+    --accent: #c4471b;
+    --pencil: #2b4c7e;
+    --tape: rgb(236 214 160 / 0.72);
+    --shadow: 0 1px 1px rgb(60 40 10 / 0.08), 0 8px 20px -10px rgb(60 40 10 / 0.35);
+    --shadow-lift: 0 2px 2px rgb(60 40 10 / 0.08), 0 18px 34px -14px rgb(60 40 10 / 0.45);
+    --staff: #8f8576;
+
+    --font-serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    --font-hand: "Caveat", "Bradley Hand", "Segoe Print", cursive;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+    --gutter: clamp(1rem, 3vw, 2.5rem);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --paper: #161410;
+        --paper-deep: #1f1c16;
+        --card: #24201a;
+        --ink: #efe7d6;
+        --ink-2: #cdc2ae;
+        --ink-3: #93897a;
+        --rule: #3b352b;
+        --accent: #f07a45;
+        --pencil: #8fb0e0;
+        --tape: rgb(170 150 105 / 0.42);
+        --shadow: 0 1px 1px rgb(0 0 0 / 0.3), 0 10px 24px -12px rgb(0 0 0 / 0.8);
+        --shadow-lift: 0 2px 2px rgb(0 0 0 / 0.3), 0 20px 36px -14px rgb(0 0 0 / 0.9);
+        --staff: #7d7465;
+    }
+}
+
+body.cp {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--paper);
+    /* Paper grain. */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    color: var(--ink);
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+.cp a {
+    color: inherit;
+}
+
+.cp :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.kicker {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+/* ------------------------------------------------------------------ bar */
+
+.cp-bar {
+    position: relative;
+    z-index: 20;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem var(--gutter);
+}
+
+.cp-bar__name {
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+}
+
+.cp-bar__views {
+    display: flex;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.cp-bar__views a {
+    padding: 0.375rem 0.625rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    text-decoration: none;
+    color: var(--ink-2);
+}
+
+.cp-bar__views a:hover {
+    border-color: var(--rule);
+}
+
+.cp-bar__views a[aria-current="page"] {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+.cp-foot {
+    padding: 3rem var(--gutter) 6rem;
+    font-size: 0.875rem;
+    color: var(--ink-3);
+}
+
+.cp-foot details summary {
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.cp-foot ul {
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    columns: 18rem;
+    column-gap: 2rem;
+}
+
+.cp-foot li {
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
+}
+
+/* ------------------------------------------------------------------ tile */
+
+.tile {
+    container: tile / size;
+    position: relative;
+    display: block;
+    box-sizing: border-box;
+    color: var(--ink);
+    text-decoration: none;
+    rotate: var(--tilt, 0deg);
+    transition:
+        rotate 0.25s ease,
+        translate 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.tile *,
+.tile *::before,
+.tile *::after {
+    box-sizing: border-box;
+}
+
+.face {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: var(--shadow);
+}
+
+a.tile:hover,
+.tile:focus-within {
+    z-index: 2;
+}
+
+a.tile:hover .face,
+.tile:focus-within .face {
+    box-shadow: var(--shadow-lift);
+}
+
+/* Washi tape on every third taped thing. */
+.tile[data-tape]::before {
+    content: "";
+    position: absolute;
+    z-index: 3;
+    top: -0.45rem;
+    left: 50%;
+    width: min(5.5rem, 46%);
+    height: 1.1rem;
+    translate: -50% 0;
+    rotate: -3deg;
+    background: var(--tape);
+    mix-blend-mode: multiply;
+    pointer-events: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .tile[data-tape]::before {
+        mix-blend-mode: normal;
+    }
+}
+
+.note {
+    margin: 0;
+    font-family: var(--font-hand);
+    font-size: 1.35rem;
+    line-height: 1.05;
+    color: var(--pencil);
+    rotate: -1.5deg;
+}
+
+/* ---- image */
+
+.face--image {
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    padding: 0.4rem;
+    background: var(--card);
+}
+
+.image__frames {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    gap: 0.4rem;
+    min-height: 0;
+    background: var(--paper-deep);
+}
+
+.image__frames img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: cover;
+    filter: saturate(0.92) contrast(1.02);
+}
+
+.tile[data-kind="game"] .image__frames img {
+    object-fit: contain;
+    padding: 6%;
+}
+
+.face--image figcaption {
+    display: none;
+    padding: 0.45rem 0.2rem 0.1rem;
+    line-height: 1.2;
+}
+
+.face--image figcaption .kicker {
+    display: block;
+}
+
+.image__title {
+    display: block;
+    font-weight: 500;
+    font-size: 1.0625rem;
+}
+
+.image__subtitle {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    font-style: italic;
+}
+
+.face--image .note {
+    display: none;
+    justify-self: end;
+    max-width: 85%;
+    padding: 0.15rem 0.35rem 0.2rem;
+    text-align: right;
+}
+
+/* No image loaded: let the words carry it. */
+.face--noimage .image__frames {
+    display: none;
+}
+
+.face--noimage {
+    grid-template-rows: auto auto;
+    align-content: end;
+    padding: 0.85rem;
+    background:
+        repeating-linear-gradient(
+            -45deg,
+            transparent 0 9px,
+            color-mix(in srgb, var(--rule) 45%, transparent) 9px 10px
+        ),
+        var(--card);
+}
+
+.face--noimage figcaption {
+    display: block;
+}
+
+.face--noimage .image__title {
+    font-size: 1.4rem;
+    line-height: 1.1;
+}
+
+@container tile (width >= 11rem) and (height >= 11rem) {
+    .face--image figcaption {
+        display: block;
+    }
+}
+
+@container tile (width >= 16rem) and (height >= 16rem) {
+    .face--image .note {
+        display: block;
+    }
+}
+
+/* ---- book */
+
+.face--book {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 12% 10% 10% 16%;
+    background:
+        linear-gradient(
+            90deg,
+            rgb(0 0 0 / 0.28) 0 4%,
+            rgb(255 255 255 / 0.12) 4% 5%,
+            transparent 7%
+        ),
+        linear-gradient(160deg, rgb(255 255 255 / 0.1), transparent 45%),
+        var(--cover);
+    color: var(--cover-ink);
+    border-radius: 2px 5px 5px 2px;
+}
+
+.book__shelf {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.book__title {
+    font-size: clamp(0.5rem, 12cqi, 2.6rem);
+    font-weight: 500;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+.book__author {
+    margin-top: auto;
+    font-style: italic;
+    font-size: clamp(0.45rem, 7cqi, 1.4rem);
+    opacity: 0.85;
+}
+
+@container tile (width < 7rem) {
+    .book__shelf {
+        display: none;
+    }
+
+    .face--book {
+        padding: 10% 8% 8% 14%;
+    }
+}
+
+/* ---- index card (work, writing) */
+
+.face--card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.9rem 1rem;
+    background:
+        linear-gradient(var(--accent), var(--accent)) 0 2.15rem / 100% 1px no-repeat,
+        repeating-linear-gradient(
+            transparent 0 1.45rem,
+            color-mix(in srgb, var(--pencil) 22%, transparent) 1.45rem calc(1.45rem + 1px)
+        ),
+        var(--card);
+    background-position:
+        0 2.15rem,
+        0 2.15rem,
+        0 0;
+}
+
+.card__title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    text-wrap: balance;
+}
+
+.card__desc {
+    display: none;
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+}
+
+.card__go {
+    margin-top: auto;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+}
+
+@container tile (height >= 13rem) and (width >= 15rem) {
+    .card__desc {
+        display: block;
+    }
+}
+
+@container tile (width < 9rem) {
+    .face--card {
+        padding: 0.5rem 0.6rem;
+    }
+
+    .face--card .kicker,
+    .card__go {
+        display: none;
+    }
+
+    .card__title {
+        font-size: 0.875rem;
+    }
+}
+
+/* ---- music */
+
+.face--music {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 0.25rem;
+    padding: 0.75rem 0.9rem 0.6rem;
+    background: var(--card);
+}
+
+.music__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.6rem;
+    line-height: 1.2;
+}
+
+.music__title {
+    font-size: 1.0625rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+a.music__title:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.music__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0 0.75rem;
+    font-size: 0.875rem;
+    font-style: italic;
+    color: var(--ink-2);
+}
+
+.music__count {
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+}
+
+.face--music .note {
+    display: none;
+    position: absolute;
+    right: 0.9rem;
+    top: 0.55rem;
+    max-width: 45%;
+    text-align: right;
+    font-size: 1.2rem;
+}
+
+@container tile (width >= 26rem) and (height >= 13rem) {
+    .face--music .note {
+        display: block;
+    }
+
+    .face--music:has(.note) .music__head {
+        padding-right: 46%;
+    }
+}
+
+@container tile (height < 9rem) or (width < 12rem) {
+    .face--music {
+        grid-template-rows: auto 1fr;
+        padding: 0.5rem 0.6rem;
+    }
+
+    .music__foot,
+    .music__head .kicker {
+        display: none;
+    }
+
+    .music__title {
+        font-size: 0.8125rem;
+    }
+}
+
+/* ---------------------------------------------------------------- incipit */
+
+.incipit {
+    all: unset;
+    position: relative;
+    display: grid;
+    align-items: center;
+    min-height: 0;
+    width: 100%;
+    color: var(--ink);
+    cursor: default;
+}
+
+button.incipit {
+    cursor: pointer;
+}
+
+.incipit__score {
+    display: block;
+    width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.incipit__score svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 100%;
+}
+
+/* Before abcjs arrives, and for pieces without notation: an empty grand staff. */
+.incipit:not([data-rendered]) .incipit__score {
+    position: relative;
+    aspect-ratio: 5 / 1.4;
+    max-height: 100%;
+    background:
+        repeating-linear-gradient(
+                transparent 0 calc(8% - 1px),
+                var(--staff) calc(8% - 1px) 8%
+            )
+            0 6% / 100% 40% no-repeat,
+        repeating-linear-gradient(
+                transparent 0 calc(8% - 1px),
+                var(--staff) calc(8% - 1px) 8%
+            )
+            0 62% / 100% 40% no-repeat;
+    opacity: 0.55;
+}
+
+.incipit[data-empty] .incipit__score {
+    opacity: 0.8;
+    background:
+        repeating-linear-gradient(
+                transparent 0 calc(20% - 1px),
+                color-mix(in srgb, var(--staff) 55%, transparent) calc(20% - 1px) 20%
+            )
+            0 8% / 100% 34% no-repeat,
+        repeating-linear-gradient(
+                transparent 0 calc(20% - 1px),
+                color-mix(in srgb, var(--staff) 55%, transparent) calc(20% - 1px) 20%
+            )
+            0 70% / 100% 34% no-repeat;
+}
+
+.incipit__marking {
+    position: absolute;
+    left: 4%;
+    top: 50%;
+    translate: 0 -50%;
+    padding: 0 0.4rem;
+    background: var(--card);
+    font-weight: 600;
+    font-style: italic;
+    font-size: clamp(0.8rem, 5cqi, 1.15rem);
+    white-space: nowrap;
+}
+
+.incipit__cue {
+    position: absolute;
+    right: 0;
+    bottom: -0.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    translate: 0 0.25rem;
+    transition:
+        opacity 0.2s ease,
+        translate 0.2s ease;
+}
+
+.incipit__cue-pause,
+.incipit[aria-pressed="true"] .incipit__cue-play {
+    display: none;
+}
+
+.incipit[aria-pressed="true"] .incipit__cue-pause {
+    display: inline;
+}
+
+button.incipit:hover .incipit__cue,
+button.incipit:focus-visible .incipit__cue,
+.incipit[aria-pressed="true"] .incipit__cue {
+    opacity: 1;
+    translate: 0 0;
+}
+
+.incipit[aria-pressed="true"] .incipit__cue {
+    background: var(--accent);
+}
+
+.incipit__bars {
+    display: none;
+    align-items: flex-end;
+    gap: 2px;
+    height: 0.7rem;
+}
+
+.incipit[aria-pressed="true"][data-state="playing"] .incipit__bars {
+    display: inline-flex;
+}
+
+.incipit__bars i {
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+    transform-origin: bottom;
+    animation: bars 0.9s ease-in-out infinite;
+}
+
+.incipit__bars i:nth-child(2) {
+    animation-delay: -0.3s;
+}
+
+.incipit__bars i:nth-child(3) {
+    animation-delay: -0.6s;
+}
+
+@keyframes bars {
+    0%,
+    100% {
+        scale: 1 0.3;
+    }
+    50% {
+        scale: 1 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .incipit__bars i {
+        animation: none;
+    }
+}
+
+/* abcjs output */
+.incipit .abcjs-container {
+    color: inherit;
+}
+
+.incipit svg path,
+.incipit svg text {
+    fill: currentColor;
+}
+
+.incipit svg .abcjs-staff,
+.incipit svg .abcjs-staff path {
+    fill: var(--staff);
+}
+
+.incipit svg .abcjs-dynamics,
+.incipit svg .abcjs-decoration {
+    font-style: italic;
+}
+
+button.incipit[aria-pressed="true"] svg .abcjs-note path {
+    fill: var(--accent);
+}
+
+/* ---------------------------------------------------------- now playing */
+
+.now-playing {
+    position: fixed;
+    z-index: 60;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    width: min(22.5rem, calc(100vw - 2rem));
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--shadow-lift);
+    font-family: var(--font-serif);
+    border: 1px solid var(--rule);
+}
+
+.now-playing[hidden] {
+    display: none;
+}
+
+.now-playing__frame {
+    position: relative;
+    height: 200px;
+    background: #000;
+}
+
+.now-playing__frame iframe,
+.now-playing__frame > div {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.now-playing__meta {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem 0.8rem;
+}
+
+.now-playing__title {
+    display: block;
+    font-weight: 500;
+    line-height: 1.25;
+    text-decoration: none;
+}
+
+.now-playing__title:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.now-playing__sub {
+    margin: 0.1rem 0 0;
+    font-size: 0.8125rem;
+    font-style: italic;
+    color: var(--ink-2);
+}
+
+.now-playing__controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.now-playing__controls button {
+    all: unset;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+    cursor: pointer;
+}
+
+.now-playing__controls button:hover {
+    background: var(--paper-deep);
+    color: var(--ink);
+}
+
+.now-playing__controls button[hidden] {
+    display: none;
+}
+
+.now-playing__controls button:focus-visible {
+    outline: 2px solid var(--accent);
+}
+
+@media (max-width: 30rem) {
+    .now-playing {
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        border-width: 1px 0 0;
+    }
+}
+
+/* Leave room to scroll content out from under the player. */
+body.cp:has(#now-playing:not([hidden])) {
+    padding-bottom: 19rem;
+}

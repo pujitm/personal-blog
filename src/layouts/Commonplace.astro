@@ -1,0 +1,81 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import NowPlaying from "../components/commonplace/NowPlaying.astro";
+import { anchor, getCollage } from "../lib/commonplace";
+import "../styles/commonplace.css";
+
+export interface Props {
+    title: string;
+    description: string;
+    view?: "leaf" | "grid";
+}
+
+const { title, description, view } = Astro.props;
+
+// Everything borrowed, credited once at the bottom of every page.
+const { influences } = await getCollage();
+const credits = [
+    { title: anchor.title, credit: anchor.image.credit },
+    ...influences.flatMap((item) =>
+        item.images
+            .filter((image) => image.credit)
+            .map((image) => ({ title: item.title, credit: image.credit! })),
+    ),
+].filter(
+    (entry, i, all) =>
+        all.findIndex((e) => e.title === entry.title && e.credit === entry.credit) === i,
+);
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <BaseHead title={title} description={description} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300..650;1,6..72,300..650&display=swap"
+        />
+        <script is:inline>
+            // Hotlinked images break; try the fallback, then fall back to type.
+            window.commonplaceImageError = (img) => {
+                const fallback = img.dataset.fallback;
+                if (fallback) {
+                    img.removeAttribute("data-fallback");
+                    img.src = fallback;
+                    return;
+                }
+                const face = img.closest(".face, .entry__figure");
+                img.remove();
+                if (face && !face.querySelector("img")) face.classList.add("face--noimage");
+            };
+        </script>
+    </head>
+    <body class="cp">
+        <header class="cp-bar">
+            <a class="cp-bar__name" href="/">pujit mehrotra</a>
+            <nav class="cp-bar__views" aria-label="Commonplace views">
+                <a href="/leaf" aria-current={view === "leaf" ? "page" : undefined}>Leaf</a>
+                <a href="/grid" aria-current={view === "grid" ? "page" : undefined}>Grid</a>
+                <a href="/blog">Blog</a>
+            </nav>
+        </header>
+        <slot />
+        <footer class="cp-foot">
+            <details>
+                <summary>Image credits</summary>
+                <ul>
+                    {
+                        credits.map(({ title, credit }) => (
+                            <li>
+                                <em>{title}</em>: {credit}
+                            </li>
+                        ))
+                    }
+                </ul>
+            </details>
+        </footer>
+        <NowPlaying />
+    </body>
+</html>
